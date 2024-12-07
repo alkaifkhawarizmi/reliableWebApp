@@ -68,7 +68,7 @@ export default function Gallery() {
       <Navbar />
     <div
       ref={galleryRef}
-     className="grid pt-32 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-6 bg-gray-100 auto-rows-auto"
+     className="grid pt-32 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 md:p-6 bg-gray-100 auto-rows-auto"
     >
       {imageUrls.map((url, index) => (
         <div
@@ -78,7 +78,7 @@ export default function Gallery() {
           <img
             src={url}
             alt={`Gallery ${index + 1}`}
-            className="h-[400px] min-w-[380px] md:min-w-[350px] object-cover transform transition-transform duration-500 hover:scale-110"
+            className="h-[400px] min-w-[360px] md:min-w-[350px] object-cover transform transition-transform duration-500 hover:scale-110"
           />
         </div>
       ))}

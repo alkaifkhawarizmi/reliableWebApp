@@ -99,7 +99,7 @@ function Footer() {
       <div className="text-white text-center md:font-mono">
         <h1 className="text-2xl font-medium">Location</h1>
         <div className="text-xl font-normal">
-          <div className="p-4 bg-white shadow-lg z-10">
+          <div className="md:p-4 p-1 bg-white shadow-lg z-10">
             <iframe
               width="300"
               height="200"
