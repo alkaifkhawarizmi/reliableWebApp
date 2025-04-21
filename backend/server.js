@@ -1,9 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 const connectDB = require('./database/db');
-const adminRoutes = require('./routes/adminRoutes')
-const cloudinary = require('cloudinary').v2
+const adminRoutes = require('./routes/adminRoutes');
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
 
@@ -12,19 +13,27 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  cors({
-    origin: "http://rpssuket.com", // 👈 Allow your frontend domain
-    credentials: true,
-  })
-);
+// Configure CORS properly (combine your two cors usages)
+app.use(cors({
+  origin: '*', // Frontend domains
+  credentials: true
+}));
+
+// Serve static files from Vite build
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
+}));
 
 // Mount router
-app.use('/api/v1/', adminRoutes);  // ✅ This makes routes work
+app.use('/api/v1/', adminRoutes);
 
-// Basic route
-app.get('/', (req, res) => {
-  res.send("MERN Backend Is Running");
+// Handle SPA routing - must come after static files but before error handler
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
 });
 
 // Error handling
