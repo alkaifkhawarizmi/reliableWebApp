@@ -8,23 +8,24 @@ const cloudinary = require('cloudinary').v2;
 
 const app = express();
 
+// Middlewares
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }));
 
-const allowedOrigins = [
-  'http://rpssuket.com',
-  'https://rpssuket.com'
-];
-
+// Configure CORS properly (combine your two cors usages)
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: ['https://rpssuket.com','http://rpssuket.com'], // Frontend domains
   credentials: true
+}));
+
+// Serve static files from Vite build
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
 }));
 
 // Mount router
