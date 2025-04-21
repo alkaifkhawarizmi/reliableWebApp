@@ -12,6 +12,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(
+  cors({
+    origin: "https://reliablewebapp-1.onrender.com", // 👈 Allow your frontend domain
+    credentials: true,
+  })
+);
+
 // Mount router
 app.use('/api/v1/', adminRoutes);  // ✅ This makes routes work
 
