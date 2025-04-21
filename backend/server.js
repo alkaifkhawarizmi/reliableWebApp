@@ -11,10 +11,7 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Configure CORS properly (combine your two cors usages)
-const cors = require('cors');
+app.use(express.urlencoded({ extended: true }))
 
 const allowedOrigins = [
   'http://rpssuket.com',
