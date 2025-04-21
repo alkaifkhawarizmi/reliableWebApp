@@ -8,7 +8,6 @@ const cloudinary = require('cloudinary').v2;
 
 const app = express();
 
-// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 
@@ -26,15 +25,6 @@ app.use(cors({
     }
   },
   credentials: true
-}));
-
-// Serve static files from Vite build
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
-  }
 }));
 
 // Mount router
