@@ -1,11 +1,11 @@
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_BASE_ADMIN_ALL_MEDIA
+const BASE_URL = import.meta.env
 
 export async function gettAllMedia() {
   try {
     
-    const res = await axios.get(BASE_URL)
+    const res = await axios.get(BASE_URL.VITE_BASE_ADMIN_ALL_MEDIA)
 
     if(res.status === 200){
       return res.data

@@ -22,6 +22,7 @@ import { gettAllMedia } from "../../api/fetchData";
 import UploadResult from "./UploadResult";
 import UploadNews from "./AnnoucementForm.jsx";
 import Notifications from './Notifications.jsx';
+import BackButton from "../BackButton.jsx";
 
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -59,7 +60,7 @@ const HomePage = () => {
         // Set a timeout for 10 seconds before hiding the loader
         setTimeout(() => {
           setIsLoading(false);
-        }, 10000);
+        }, 5000);
       };
       fetchMedia();
     }
@@ -205,7 +206,8 @@ if (isLoading) {
             {activeTab.replace("-", " ")}
           </h2>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <BackButton />
             <button 
               onClick={() => setActiveTab("notification")} 
               className="p-2 relative text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
@@ -214,9 +216,6 @@ if (isLoading) {
               <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
             </button>
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
-                <FiUser className="text-blue-600 dark:text-blue-300" />
-              </div>
               {sidebarOpen && <span className="font-medium dark:text-white">Principal</span>}
             </div>
           </div>
