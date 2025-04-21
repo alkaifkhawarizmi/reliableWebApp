@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Configure CORS properly (combine your two cors usages)
 app.use(cors({
-  origin: '*', // Frontend domains
+  origin: 'https://rpssuket.com', // Frontend domains
   credentials: true
 }));
 
