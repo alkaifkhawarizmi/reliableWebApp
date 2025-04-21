@@ -19,22 +19,8 @@ app.use(cors({
   credentials: true
 }));
 
-// Serve static files from Vite build
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist'), {
-  setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
-  }
-}));
-
 // Mount router
 app.use('/api/v1/', adminRoutes);
-
-// Handle SPA routing - must come after static files but before error handler
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
-});
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -44,6 +30,6 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server Started`);
   connectDB().then(() => console.log('DB Connected!'));
 });
