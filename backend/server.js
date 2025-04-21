@@ -14,8 +14,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configure CORS properly (combine your two cors usages)
+const cors = require('cors');
+
+const allowedOrigins = [
+  'http://rpssuket.com',
+  'https://rpssuket.com'
+];
+
 app.use(cors({
-  origin: 'https://rpssuket.com', // Frontend domains
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
