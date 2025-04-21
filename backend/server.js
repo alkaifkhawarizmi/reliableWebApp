@@ -11,7 +11,7 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true })) 
 
 // Configure CORS properly (combine your two cors usages)
 app.use(cors({
