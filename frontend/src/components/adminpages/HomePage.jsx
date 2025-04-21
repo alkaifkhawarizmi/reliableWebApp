@@ -15,7 +15,8 @@ import {
   FiMessageSquare,
   FiUser,
   FiMoon,
-  FiSun
+  FiSun,
+  FiLoader
 } from "react-icons/fi";
 import { gettAllMedia } from "../../api/fetchData";
 import UploadResult from "./UploadResult";
@@ -32,6 +33,8 @@ const HomePage = () => {
     const savedTheme = localStorage.getItem("theme");
     return savedTheme ? savedTheme === "dark" : false;
   });
+  const [countdown, setCountdown] = useState(10);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Apply dark mode class to document element
   useEffect(() => {
@@ -52,10 +55,16 @@ const HomePage = () => {
       const fetchMedia = async () => {
         const media = await gettAllMedia();
         setMedia(media.media);
+        
+        // Set a timeout for 10 seconds before hiding the loader
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 10000);
       };
       fetchMedia();
     }
   }, []);
+
 
   // Toggle dark mode
   const toggleDarkMode = () => {
@@ -86,6 +95,23 @@ const HomePage = () => {
       path: "",
     },
   ];
+
+
+if (isLoading) {
+  return (
+    <div className={`fixed inset-0 flex items-center justify-center ${darkMode ? "bg-gray-900" : "bg-white"} z-50`}>
+      <div className="text-center">
+        <FiLoader className={`animate-spin text-6xl mx-auto mb-4 ${darkMode ? "text-blue-400" : "text-blue-600"}`} />
+        <h2 className={`text-2xl font-semibold ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+          Loading Dashboard...
+        </h2>
+        <p className={`mt-2 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+          Please wait while we prepare your admin panel
+        </p>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className={`flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300`}>
