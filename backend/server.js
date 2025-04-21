@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: "https://http://rpssuket.com", // 👈 Allow your frontend domain
+    origin: "http://rpssuket.com", // 👈 Allow your frontend domain
     credentials: true,
   })
 );
