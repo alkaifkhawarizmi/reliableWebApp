@@ -22,6 +22,10 @@ const studentSchema = new mongoose.Schema({
     type: String, 
     default: '' 
   },
+  motherName: { 
+    type: String, 
+    default: '' 
+  },
   photo: {
     url: { type: String, default: '' },
     publicId: { type: String, default: '' }

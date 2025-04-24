@@ -60,7 +60,7 @@ const HomePage = () => {
         // Set a timeout for 10 seconds before hiding the loader
         setTimeout(() => {
           setIsLoading(false);
-        }, 5000);
+        }, 2000);
       };
       fetchMedia();
     }

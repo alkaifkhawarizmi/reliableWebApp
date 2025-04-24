@@ -300,7 +300,7 @@ const uploadResult = async (req, res) => {
     }
 
     // 3. Validate required fields
-    const { name, rollNo, className, section, fatherName, feesPaid } = req.body;
+    const { name, rollNo, className, section, fatherName, feesPaid , motherName } = req.body;
     if (!name || !rollNo || !className || !section || !fatherName || feesPaid === undefined) {
       return res.status(400).json({
         success: false,
@@ -338,6 +338,7 @@ const uploadResult = async (req, res) => {
       className,
       section,
       fatherName,
+      motherName,
       feesPaid,
       subjects,
       photo: {
@@ -377,7 +378,8 @@ const uploadResult = async (req, res) => {
 
 const getResult = async (req, res) => {
   try {
-    const student = await Student.findOne({ rollNo: req.params.id });
+
+    const student = await Student.findOne({ _id: req.params.id });
     
     if (!student) {
       return res.status(404).json({
@@ -429,13 +431,6 @@ const getAllResults = async (req, res) => {
 
 const updateResult = async (req, res) => {
   try {
-    const validationErrors = validateStudentResult(req.body);
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ 
-        success: false,
-        errors: validationErrors 
-      });
-    }
 
     const student = await Student.findByIdAndUpdate(
       req.params.id,

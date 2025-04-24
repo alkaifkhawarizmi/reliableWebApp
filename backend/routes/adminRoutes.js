@@ -12,7 +12,9 @@ const {
   createAnnouncement,
   getActiveAnnouncements,
   getContacts,
-  submitContactForm
+  submitContactForm,
+  updateResult,
+  deleteResult
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middlewares/auth');
 
@@ -33,6 +35,8 @@ router.delete('/admin/media/delete/:id', deleteMedia);
 router.post('/admin/upload/result', resultUpload.single('photo'), uploadResult);
 router.get('/fetch/result/:id', getResult);
 router.get('/fetch/all/results', getAllResults);
+router.put('/update/result/:id' , updateResult)
+router.delete('/delete/result/:id' , deleteResult)
 
 
 router.post('/admin/upload/annoucement', annoucementUpload.single('attachment') , createAnnouncement);
