@@ -78,9 +78,9 @@ function StudentResult() {
       <div className="min-h-screen mt-16 bg-gray-100 pb-20">
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-800">Roopnagar Public School</h1>
-            <p className="text-gray-600 mt-2">Roopnagar, NH-52, Kota Road, Jhalawar</p>
-            <p className="text-gray-600">Ph : +91 7665543201, 8432050253</p>
+            <h1 className="text-4xl font-bold text-gray-800">Reliable Public School</h1>
+            <p className="text-gray-600 mt-2">Reliable Public School, NH-52, Kota Road, Suket</p>
+            <p className="text-gray-600">Ph : +91 93512-39366</p>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6 mb-8 max-w-md mx-auto">

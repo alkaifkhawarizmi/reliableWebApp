@@ -1,94 +1,34 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: [true, 'Student name is required'] 
-  },
-  rollNo: { 
-    type: String, 
-    required: [true, 'Roll number is required'], 
-    unique: true 
-  },
-  className: { 
-    type: String, 
-    required: [true, 'Class is required'] 
-  },
-  section: { 
-    type: String, 
-    default: '' 
-  },
-  fatherName: { 
-    type: String, 
-    default: '' 
-  },
-  motherName: { 
-    type: String, 
-    default: '' 
-  },
-  dob: {
-    type: Date,
-    default: null
-  },
-  totalPresentDays: {
-    type: Number,
-    default: 0,
-    min: [0, 'Present days cannot be negative']
-  },
-  promotedToNextClass: {
-    type: Boolean,
-    default: false
-  },
+  name: { type: String, required: true },
+  rollNo: { type: String, required: true, unique: true },
+  className: { type: String, required: true },
+  section: { type: String, default: '' },
+  fatherName: { type: String, required: true },
+  motherName: { type: String, default: '' },
+  dob: { type: Date },
+  admissionNo: { type: String },
+  totalPresentDays: { type: Number, default: 0 },
+  promotedToNextClass: { type: Boolean, default: false },
   photo: {
-    url: { type: String, default: '' },
-    publicId: { type: String, default: '' }
+    url: { type: String },
+    publicId: { type: String }
   },
   subjects: [{
-    name: { 
-      type: String, 
-      required: [true, 'Subject name is required'] 
-    },
-    maxMarks: { 
-      type: Number, 
-      required: [true, 'Maximum marks are required'], 
-      min: [1, 'Maximum marks must be at least 1'] 
-    },
-    marksObtained: { 
-      type: Number, 
-      required: [true, 'Marks obtained are required'], 
-      min: [0, 'Marks cannot be negative'] 
-    },
-    grade: { 
-      type: String, 
-      required: [true, 'Grade is required'] 
-    }
+    name: { type: String, required: true },
+    halfYearly: { type: Number },
+    annualExam: { type: Number, required: true },
+    grade: { type: String, required: true }
   }],
   coScholasticAreas: [{
-    area: {
-      type: String,
-      required: [true, 'Area name is required']
-    },
-    grade: {
-      type: String,
-      required: [true, 'Grade is required']
-    },
-    remarks: {
-      type: String,
-      default: ''
-    }
+    area: { type: String, required: true },
+    grade: { type: String },
+    remarks: { type: String }
   }],
-  feesPaid: { 
-    type: Boolean, 
-    default: false 
-  },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  },
-  updatedAt: { 
-    type: Date, 
-    default: Date.now 
-  }
+  feesPaid: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model("Student", studentSchema);
