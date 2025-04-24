@@ -162,26 +162,7 @@ const PrincipalDashboard = () => {
                 >
                   All Media
                 </button>
-                <button
-                  onClick={() => setActiveTab("gallery")}
-                  className={`whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm ${
-                    activeTab === "gallery"
-                      ? "border-indigo-500 text-indigo-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Student Gallery
-                </button>
-                <button
-                  onClick={() => setActiveTab("banner")}
-                  className={`whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm ${
-                    activeTab === "banner"
-                      ? "border-indigo-500 text-indigo-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Banners
-                </button>
+
               </nav>
             </div>
 
@@ -311,7 +292,6 @@ const PrincipalDashboard = () => {
                   >
                     <option value="gallery">Student Gallery</option>
                     <option value="banner">Banner</option>
-                    <option value="event">Event</option>
                   </select>
                 </div>
 

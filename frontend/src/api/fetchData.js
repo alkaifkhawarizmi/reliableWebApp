@@ -19,3 +19,21 @@ export async function gettAllMedia() {
     });
   }
 }
+
+export async function getAllActivity() {
+  try {
+    
+    const res = await axios.get(BASE_URL.VITE_BASE_ADMIN_ACTIVITY)
+
+    if(res.status === 200){
+      return res
+    }
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      msg: "An error occurred while fetching media",
+      error: error.message,
+    });
+  }
+}
