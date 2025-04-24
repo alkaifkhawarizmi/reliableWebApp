@@ -43,7 +43,7 @@ const resultService = {
   // Delete a result
   deleteResult: async (id) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_BASE_ALL_RESULT}/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BASE_DELETE_RESULT}/${id}`, {
         method: 'DELETE'
       });
       const data = await response.json();

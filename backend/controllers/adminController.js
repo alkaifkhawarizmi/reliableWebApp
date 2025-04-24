@@ -7,6 +7,7 @@ const fs = require('fs').promises;
 const Media = require('../models/Media');
 const Announcement = require('../models/annoucementSchema');
 const Contact = require('../models/Contact');
+const { default: RecentActivity } = require('../models/recentActivity');
 
 
 // Constants
@@ -120,6 +121,12 @@ const loginPrincipal = async (req, res) => {
       { expiresIn: TOKEN_EXPIRY }
     );
 
+    const activity = new RecentActivity({
+      description : "Principal Logged in"
+    })
+
+    await activity.save();
+
     return res.status(200).json({
       success: true,
       msg: "Login successful",
@@ -204,6 +211,12 @@ const uploadMedia = async (req, res) => {
     //   console.error('Temp file deletion warning:', err.message);
     // });
 
+    const activity = new RecentActivity({
+      description : "Principal Uploaded Media"
+    })
+
+    await activity.save();
+
     return res.status(201).json({
       success: true,
       msg: 'Media uploaded successfully',
@@ -260,6 +273,12 @@ const deleteMedia = async (req, res) => {
 
     // Then delete from database
     await Media.findByIdAndDelete(id);
+
+    const activity = new RecentActivity({
+      description : "Principal Deleted Media"
+    })
+
+    await activity.save();
 
     return res.status(200).json({
       success: true,
@@ -349,6 +368,12 @@ const uploadResult = async (req, res) => {
 
     // 7. Clean up the temporary file
     // fs.unlinkSync(tempFilePath);
+
+    const activity = new RecentActivity({
+      description : `Principal Upload result of rollNo : ${rollNo}`
+    })
+
+    await activity.save();
 
     return res.status(201).json({
       success: true,
@@ -445,6 +470,12 @@ const updateResult = async (req, res) => {
       });
     }
 
+    const activity = new RecentActivity({
+      description : `Principal Updated result of ${req.params.id}`
+    })
+
+    await activity.save();
+
     return res.status(200).json({
       success: true,
       msg: "Result updated successfully",
@@ -466,6 +497,12 @@ const deleteResult = async (req, res) => {
         msg: "Student not found"
       });
     }
+
+    const activity = new RecentActivity({
+      description : `Principal Deleted a result of ${req.params.id}`
+    })
+
+    await activity.save();
 
     return res.status(200).json({
       success: true,
@@ -498,6 +535,12 @@ const createAnnouncement = async (req, res) => {
       expiryDate: expiryDate || null,
       isActive: true
     });
+
+    const activity = new RecentActivity({
+      description : `Principal Created a Annoucement : ${title}`
+    })
+
+    await activity.save();
 
     res.status(201).json({
       success: true,
@@ -573,6 +616,22 @@ const getContacts = async (req, res) => {
   }
 };
 
+const getAllActivity = async (req, res) => {
+  try {
+    
+    const activity = await RecentActivity.find().sort();
+    console.log(activity)
+
+    return res.status(200).json({
+      success: true,
+      activity
+    });
+
+  } catch (error) {
+    return handleError(res, error, "Fetching all results");
+  }
+};
+
 module.exports = {
   loginPrincipal,
   registerAdmin,
@@ -588,5 +647,6 @@ module.exports = {
   createAnnouncement,
   getActiveAnnouncements,
   submitContactForm,
-  getContacts
+  getContacts,
+  getAllActivity
 };

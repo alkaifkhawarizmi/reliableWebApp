@@ -14,7 +14,8 @@ const {
   getContacts,
   submitContactForm,
   updateResult,
-  deleteResult
+  deleteResult,
+  getAllActivity
 } = require('../controllers/adminController');
 const { verifyToken } = require('../middlewares/auth');
 
@@ -44,5 +45,7 @@ router.get('/annoucements', getActiveAnnouncements);
 
 router.post('/contact', submitContactForm);
 router.get('/admin/contacts', getContacts);
+
+router.get('/admin/activity' , getAllActivity)
 
 module.exports = router;
