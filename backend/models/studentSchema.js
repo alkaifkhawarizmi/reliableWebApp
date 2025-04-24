@@ -26,6 +26,19 @@ const studentSchema = new mongoose.Schema({
     type: String, 
     default: '' 
   },
+  dob: {
+    type: Date,
+    default: null
+  },
+  totalPresentDays: {
+    type: Number,
+    default: 0,
+    min: [0, 'Present days cannot be negative']
+  },
+  promotedToNextClass: {
+    type: Boolean,
+    default: false
+  },
   photo: {
     url: { type: String, default: '' },
     publicId: { type: String, default: '' }
@@ -48,6 +61,20 @@ const studentSchema = new mongoose.Schema({
     grade: { 
       type: String, 
       required: [true, 'Grade is required'] 
+    }
+  }],
+  coScholasticAreas: [{
+    area: {
+      type: String,
+      required: [true, 'Area name is required']
+    },
+    grade: {
+      type: String,
+      required: [true, 'Grade is required']
+    },
+    remarks: {
+      type: String,
+      default: ''
     }
   }],
   feesPaid: { 

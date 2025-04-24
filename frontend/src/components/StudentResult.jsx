@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { FaSearch, FaDownload, FaSchool, FaUserGraduate } from "react-icons/fa";
-import { MdAssignment } from "react-icons/md";
+import { FaDownload } from "react-icons/fa";
 import Navbar from "./Navbar";
 import axios from "axios";
 import jsPDF from 'jspdf';
@@ -12,11 +11,6 @@ function StudentResult() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [total, setTotal] = useState({
-    totalMarks: "",
-    percentage: "",
-    overallGrade: "",
-  });
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -36,7 +30,6 @@ function StudentResult() {
         setError("Fees not paid. Please submit your fees to view the result.");
       } else {
         setResult(studentData);
-        calculateResult(studentData);
       }
     } catch (err) {
       setError(err.message || "No result found for this roll number");
@@ -79,94 +72,51 @@ function StudentResult() {
     pdf.save(`${result.name.replace(/\s/g, "_")}_Result.pdf`);
   };
 
-  function calculateResult(student) {
-    const subjects = student.subjects;
-    let totalMarks = 0;
-    let totalMaxMarks = 0;
-    subjects.forEach((subject) => {
-      totalMarks += subject.marksObtained;
-      totalMaxMarks += subject.maxMarks;
-    });
-    const percentage = (totalMarks / totalMaxMarks) * 100;
-    let overallGrade = "";
-    if (percentage >= 90) overallGrade = "A+";
-    else if (percentage >= 80) overallGrade = "A";
-    else if (percentage >= 70) overallGrade = "B";
-    else if (percentage >= 60) overallGrade = "C";
-    else if (percentage >= 50) overallGrade = "D";
-    else overallGrade = "F";
-    setTotal({
-      totalMarks,
-      percentage: percentage.toFixed(2),
-      overallGrade,
-    });
-  }
-
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen mt-16 bg-gradient-to-b from-blue-50 to-indigo-50 pb-20">
+      <div className="min-h-screen mt-16 bg-gray-100 pb-20">
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <div className="flex items-center justify-center mb-4">
-              <h1 className="text-4xl font-bold text-blue-800">RPS School</h1>
-            </div>
-            <h2 className="text-2xl font-semibold text-gray-700">
-              Student Result Portal
-            </h2>
-            <div className="w-24 h-1 bg-yellow-400 mx-auto mt-2 rounded-full"></div>
+            <h1 className="text-4xl font-bold text-gray-800">Roopnagar Public School</h1>
+            <p className="text-gray-600 mt-2">Roopnagar, NH-52, Kota Road, Jhalawar</p>
+            <p className="text-gray-600">Ph : +91 7665543201, 8432050253</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6 mb-8 max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8 max-w-md mx-auto">
             <form onSubmit={handleSearch} className="space-y-4">
               <div>
                 <label
                   htmlFor="rollNumber"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 >
-                  Enter Your Roll Number
+                  Enter Roll Number
                 </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    id="rollNumber"
-                    value={rollNumber}
-                    onChange={(e) => setRollNumber(e.target.value)}
-                    required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g. 2023001"
-                  />
-                  <FaUserGraduate className="absolute left-3 top-3.5 text-gray-400" />
-                </div>
+                <input
+                  type="text"
+                  id="rollNumber"
+                  value={rollNumber}
+                  onChange={(e) => setRollNumber(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g. 8A028"
+                />
               </div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center transition duration-300"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300"
               >
-                <FaSearch className="mr-2" />
                 {loading ? "Searching..." : "View Result"}
               </button>
             </form>
             {error && (
-              <div
-                className={`mt-4 p-3 rounded-lg text-sm ${
-                  error.includes("Fees not paid")
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-red-100 text-red-700"
-                }`}
-              >
+              <div className={`mt-4 p-3 rounded-md text-sm ${
+                error.includes("Fees not paid")
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-700"
+              }`}>
                 {error}
-                {error.includes("Fees not paid") && (
-                  <div className="mt-2">
-                    <a
-                      href="/pay-fees"
-                      className="text-blue-600 hover:underline"
-                    >
-                      Click here to pay fees
-                    </a>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -174,147 +124,180 @@ function StudentResult() {
           {result && (
             <div
               id="result-card"
-              className="bg-white rounded-xl shadow-lg overflow-hidden"
+              className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-300"
             >
-              <div className="text-center border-b border-gray-300 pb-4 px-6 bg-blue-50">
-                <img
-                  src={schoollogo}
-                  alt="School Logo"
-                  className="mx-auto h-16 mb-2"
-                />
-                <h2 className="text-2xl font-bold text-blue-800">
-                  RPS Public School
-                </h2>
-                <p className="text-gray-700 text-sm">
-                  NH-52, Kota Road, Suket , Rajasthan, 326530
-                </p>
-                <p className="text-gray-600 text-sm">
-                  Phone: +91 9876543210 | Email: info@rpsschool.edu
-                </p>
-                <p className="text-xs text-gray-400 italic mt-1">
-                  Affiliated to CBSE, New Delhi - Affiliation No. 2134567
-                </p>
+              {/* Header */}
+              <div className="text-center py-4 border-b border-gray-300">
+                <h1 className="text-2xl font-bold">Roopnagar Public School, Jhalawar</h1>
+                <p className="text-sm">Roopnagar, NH-52, Kota Road, Jhalawar</p>
+                <p className="text-sm">Ph : +91 7665543201, 8432050253</p>
+                <h2 className="text-xl font-semibold mt-2">Annual Report Card : {result.className} (2024-25)</h2>
               </div>
 
-              <div className="bg-blue-700 text-white p-6 flex justify-between items-center">
-                <div>
-                  <h3 className="text-2xl font-bold">Academic Result</h3>
-                  <p className="text-blue-100">Session 2023-2024</p>
-                </div>
-                <button
-                  onClick={handleDownload}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-blue-800 font-medium py-2 px-4 rounded-lg flex items-center justify-center transition duration-300"
-                >
-                  <FaDownload className="mr-2" />
-                  Download Result
-                </button>
-              </div>
-
-              <div className="p-6 border-b grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <div className="flex flex-col items-center">
-                  <img
-                    src={result.photo.url || "/default-student.jpg"}
-                    alt="Student"
-                    className="h-24 w-24 rounded-full border-4 border-blue-500 shadow-md"
-                  />
-                  <p className="mt-2 text-gray-600 text-sm italic">
-                    Student Photo
-                  </p>
-                </div>
-                <div className="text-center md:text-left">
-                  <p className="text-lg font-bold">{result.name}</p>
-                  <p>Father's Name: {result.fatherName}</p>
-                  <p>Class: {result.className}</p>
-                  <p>Roll Number: {result.rollNo}</p>
-                </div>
-                <div className="flex justify-center md:justify-end">
-                  <img
-                    src="/principal-signature.png"
-                    alt="Principal Signature"
-                    className="h-16"
-                  />
-                </div>
-              </div>
-
-              <div className="p-6">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+              {/* Student Profile */}
+              <div className="p-4 border-b border-gray-300">
+                <table className="w-full border-collapse">
+                  <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Subject
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Marks
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Grade
-                      </th>
+                      <th colSpan="4" className="text-left font-bold py-2 bg-gray-100">STUDENT PROFILE</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody>
+                    <tr>
+                      <td className="py-1 font-medium">Student's Name</td>
+                      <td className="py-1">: {result.name}</td>
+                      <td className="py-1 font-medium">Roll No.</td>
+                      <td className="py-1">: {result.rollNo}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Mother's Name</td>
+                      <td className="py-1">: {result.motherName}</td>
+                      <td className="py-1 font-medium">Admission No.</td>
+                      <td className="py-1">: {result.admissionNo || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Father's Name</td>
+                      <td className="py-1">: {result.fatherName}</td>
+                      <td className="py-1 font-medium">Date of Birth</td>
+                      <td className="py-1">: {result.dob ? new Date(result.dob).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1 font-medium">Class</td>
+                      <td className="py-1">: {result.className}</td>
+                      <td className="py-1"></td>
+                      <td className="py-1"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Attendance */}
+              <div className="p-4 border-b border-gray-300">
+                <h3 className="font-bold mb-2">ATTENDANCE</h3>
+                <p className="text-center font-medium">Total No. of Present Days : {result.totalPresentDays || 0}</p>
+              </div>
+
+              {/* Scholastic Areas */}
+              <div className="p-4 border-b border-gray-300">
+                <h3 className="font-bold mb-2 text-center">SCHOLASTIC AREAS</h3>
+                <table className="w-full border-collapse text-sm">
+                  <thead>
+                    <tr>
+                      <th rowSpan="2" className="border border-gray-300 px-2 py-1">Subjects</th>
+                      <th colSpan="4" className="border border-gray-300 px-2 py-1 text-center">TERM I</th>
+                      <th colSpan="4" className="border border-gray-300 px-2 py-1 text-center">TERM II</th>
+                    </tr>
+                    <tr>
+                      <th className="border border-gray-300 px-2 py-1">PT-I</th>
+                      <th className="border border-gray-300 px-2 py-1">NB-I</th>
+                      <th className="border border-gray-300 px-2 py-1">SEA-I</th>
+                      <th className="border border-gray-300 px-2 py-1">Half Yearly</th>
+                      <th className="border border-gray-300 px-2 py-1">Total Marks (100)</th>
+                      <th className="border border-gray-300 px-2 py-1">PT-II</th>
+                      <th className="border border-gray-300 px-2 py-1">NB-II</th>
+                      <th className="border border-gray-300 px-2 py-1">SEA-II</th>
+                      <th className="border border-gray-300 px-2 py-1">Annual Exam</th>
+                      <th className="border border-gray-300 px-2 py-1">Total Mark (100)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {result.subjects.map((subject, index) => (
                       <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap flex items-center">
-                          <MdAssignment className="text-blue-500 mr-2" />
-                          {subject.name}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {subject.marksObtained}/100
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            {subject.grade}
-                          </span>
-                        </td>
+                        <td className="border border-gray-300 px-2 py-1">{subject.name}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term1?.pt1 || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term1?.nb1 || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term1?.sea1 || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term1?.halfYearly || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term1?.total || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term2?.pt2 || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term2?.nb2 || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term2?.sea2 || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term2?.annualExam || '-'}</td>
+                        <td className="border border-gray-300 px-2 py-1 text-center">{subject.term2?.total || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              <div className="bg-gray-50 p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <p className="text-sm text-gray-500">Total Marks</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {total.totalMarks}/500
-                  </p>
+              {/* Aggregate Marks */}
+              <div className="p-4 border-b border-gray-300">
+                <h3 className="font-bold mb-2">Aggregate Marks</h3>
+                <h3 className="font-bold mb-2">Aggregate Grade</h3>
+              </div>
+
+              {/* Co-Scholastic Areas */}
+              <div className="p-4 border-b border-gray-300">
+                <h3 className="font-bold mb-2">Co-Scholastic Areas</h3>
+                <table className="w-full border-collapse">
+                  <tbody>
+                    <tr>
+                      <td className="py-1">Work & Art Education</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1">Health & Physical Education</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1">Discipline</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Remarks */}
+              <div className="p-4 border-b border-gray-300">
+                <h3 className="font-bold mb-2">CLASS TEACHER'S REMARK</h3>
+                <p className="border border-gray-300 p-2 rounded">Good</p>
+                <p className="mt-2 font-medium">PROMOTED TO :- {result.promotedToNextClass ? result.className.replace(/\d+/, n => ++n) : 'Same Class'}</p>
+              </div>
+
+              {/* Grading System */}
+              <div className="p-4">
+                <h3 className="font-bold mb-2">GRADING SYSTEM (SCHOLASTIC)</h3>
+                <table className="w-full border-collapse text-center">
+                  <tbody>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-1">91-100</td>
+                      <td className="border border-gray-300 px-2 py-1">81-90</td>
+                      <td className="border border-gray-300 px-2 py-1">71-80</td>
+                      <td className="border border-gray-300 px-2 py-1">61-70</td>
+                      <td className="border border-gray-300 px-2 py-1">51-60</td>
+                      <td className="border border-gray-300 px-2 py-1">41-50</td>
+                      <td className="border border-gray-300 px-2 py-1">33-40</td>
+                    </tr>
+                    <tr>
+                      <td className="border border-gray-300 px-2 py-1">A1</td>
+                      <td className="border border-gray-300 px-2 py-1">A2</td>
+                      <td className="border border-gray-300 px-2 py-1">B1</td>
+                      <td className="border border-gray-300 px-2 py-1">B2</td>
+                      <td className="border border-gray-300 px-2 py-1">C1</td>
+                      <td className="border border-gray-300 px-2 py-1">C2</td>
+                      <td className="border border-gray-300 px-2 py-1">D</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 bg-gray-100 flex justify-between items-center">
+                <div>
+                  <p>Date : {new Date().toLocaleDateString()}</p>
                 </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <p className="text-sm text-gray-500">Percentage</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {total.percentage}%
-                  </p>
-                </div>
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <p className="text-sm text-gray-500">Overall Grade</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {total.overallGrade}
-                  </p>
+                <div className="text-right">
+                  <p>Class Teacher</p>
+                  <p>Principal's</p>
                 </div>
               </div>
 
-              <div className="p-6 bg-yellow-50">
-                <h4 className="text-lg font-medium text-gray-800 mb-2">
-                  Remarks
-                </h4>
-                <p className="text-gray-700">
-                  {total.overallGrade === "A+" &&
-                    "Outstanding performance! Keep up the excellent work."}
-                  {total.overallGrade === "A" &&
-                    "Excellent work, maintain consistency!"}
-                  {total.overallGrade === "B" &&
-                    "Good job, but there is room for improvement."}
-                  {total.overallGrade === "C" &&
-                    "Satisfactory. Work harder to achieve better results."}
-                  {total.overallGrade === "D" &&
-                    "Needs improvement. Focus more on studies."}
-                  {total.overallGrade === "F" &&
-                    "Fail. Requires serious attention and guidance."}
-                </p>
-              </div>
-
-              <div className="p-6 text-right text-sm text-gray-600">
-                Date of Issue: {new Date().toLocaleDateString()}
+              {/* Download Button */}
+              <div className="p-4 text-center">
+                <button
+                  onClick={handleDownload}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center justify-center mx-auto transition duration-300"
+                >
+                  <FaDownload className="mr-2" />
+                  Download Result
+                </button>
               </div>
             </div>
           )}

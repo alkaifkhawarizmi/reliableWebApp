@@ -301,8 +301,8 @@ const uploadResult = async (req, res) => {
       });
     }
 
-    // 2. Parse and validate subjects
-    let subjects;
+    // 2. Parse and validate subjects and coScholasticAreas
+    let subjects, coScholasticAreas;
     try {
       subjects = JSON.parse(req.body.subjects);
       if (!Array.isArray(subjects)) {
@@ -311,19 +311,41 @@ const uploadResult = async (req, res) => {
           msg: 'Subjects must be an array'
         });
       }
+
+      if (req.body.coScholasticAreas) {
+        coScholasticAreas = JSON.parse(req.body.coScholasticAreas);
+        if (!Array.isArray(coScholasticAreas)) {
+          return res.status(400).json({
+            success: false,
+            msg: 'Co-scholastic areas must be an array'
+          });
+        }
+      }
     } catch (e) {
       return res.status(400).json({
         success: false,
-        msg: 'Invalid subjects format'
+        msg: 'Invalid data format for subjects or co-scholastic areas'
       });
     }
 
     // 3. Validate required fields
-    const { name, rollNo, className, section, fatherName, feesPaid , motherName } = req.body;
+    const { 
+      name, 
+      rollNo, 
+      className, 
+      section, 
+      fatherName, 
+      motherName, 
+      dob,
+      totalPresentDays,
+      promotedToNextClass,
+      feesPaid 
+    } = req.body;
+
     if (!name || !rollNo || !className || !section || !fatherName || feesPaid === undefined) {
       return res.status(400).json({
         success: false,
-        msg: 'All fields are required'
+        msg: 'All required fields are missing'
       });
     }
 
@@ -351,28 +373,31 @@ const uploadResult = async (req, res) => {
     });
 
     // 6. Create student record
-    const student = await Student.create({
+    const studentData = {
       name,
       rollNo,
       className,
       section,
       fatherName,
       motherName,
+      dob: dob ? new Date(dob) : null,
+      totalPresentDays: totalPresentDays ? parseInt(totalPresentDays) : 0,
+      promotedToNextClass: promotedToNextClass === 'true',
       feesPaid,
       subjects,
+      coScholasticAreas: coScholasticAreas || [],
       photo: {
         url: cloudinaryResult.secure_url,
         publicId: cloudinaryResult.public_id
       }
-    });
+    };
 
-    // 7. Clean up the temporary file
-    // fs.unlinkSync(tempFilePath);
+    const student = await Student.create(studentData);
 
+    // 7. Record activity
     const activity = new RecentActivity({
-      description : `Principal Upload result of rollNo : ${rollNo}`
-    })
-
+      description: `Principal uploaded result for rollNo: ${rollNo}`
+    });
     await activity.save();
 
     return res.status(201).json({
@@ -404,7 +429,7 @@ const uploadResult = async (req, res) => {
 const getResult = async (req, res) => {
   try {
 
-    const student = await Student.findOne({ _id: req.params.id });
+    const student = await Student.findOne({ rollNo: req.params.id });
     
     if (!student) {
       return res.status(404).json({
