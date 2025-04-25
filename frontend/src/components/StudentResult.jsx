@@ -45,7 +45,7 @@ function StudentResult() {
       scale: 2, // higher quality
       useCORS: true, // for external images
     };
-    
+
     try {
       const canvas = await html2canvas(element, options);
       const data = canvas.toDataURL("image/png");
@@ -99,7 +99,8 @@ function StudentResult() {
               Reliable Public School
             </h1>
             <p className="text-gray-600 mt-2">
-              Reliable Public School, Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, suket
+              Reliable Public School, Opp.ward. no. 10 Opp. Hp Gas agency
+              office, Kota road, suket
             </p>
             <p className="text-gray-600">Ph : +91 93512-39366</p>
           </div>
@@ -150,6 +151,11 @@ function StudentResult() {
               className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-300 max-w-4xl mx-auto"
               style={{ width: "800px" }} // Fixed width for consistent rendering
             >
+              {/* Added registration and affiliation numbers */}
+              <div className="flex justify-between mt-4 mx-4 text-xs md:text-sm mb-2">
+                  <p className="text-left">Registration No. 20/2006</p>
+                  <p className="text-right">Affiliation No. 529/2011</p>
+                </div>
               {/* Header */}
               <div className="flex justify-center mt-4">
                 <img
@@ -160,15 +166,17 @@ function StudentResult() {
               </div>
               <div className="text-center py-4 border-b border-gray-300 px-4">
                 <h1 className="text-xl md:text-2xl font-bold">
-                  Relible Public School, Suket
+                  Reliable Public School, Suket
                 </h1>
-                <p className="text-xs md:text-sm">Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, suket</p>
-                <p className="text-xs md:text-sm">Ph : +91 93512-39366 </p>
+                <p className="text-xs md:text-sm">
+                  Opp. ward no. 10, Opp. HP Gas agency office, Kota road, Suket
+                </p>
+                <p className="text-xs md:text-sm">Ph: +91 93512-39366 , +91 74592-99224</p>
+
                 <h2 className="text-lg md:text-xl font-semibold mt-2">
-                  Annual Report Card : {result.className} Class (2024-25)
+                  Annual Report Card: {result.className} Class (2024-25)
                 </h2>
               </div>
-
               {/* Student Profile */}
               <div className="p-4 border-b border-gray-300">
                 <div className="flex flex-col md:flex-row">
