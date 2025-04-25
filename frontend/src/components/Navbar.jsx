@@ -31,7 +31,6 @@ function Navbar() {
     { name: "Addmissions", icon: <IoSchoolSharp />, path: "/addmissions" },
     { name: "School Life", icon: <FaSchoolFlag />, path: "/gallery" },
     { name: "Contact Us", icon: <IoMdCall />, path: "/contact-us" },
-    { name: "Career", icon: <RiMoneyDollarCircleFill /> , path: "/contact-us" },
     { name: "Results", icon: <IoNewspaperOutline /> , path: "/results" },
     {name : "Admin Login" , icon : <RiAdminFill /> , path: isAuthenticated ? '/admin/home' : '/admin/login'},
     { name: "About us", icon : <FcAbout /> , path: "/about-us" },

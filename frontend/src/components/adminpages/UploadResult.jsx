@@ -145,18 +145,8 @@ export default function StudentForm() {
 
       setIsUploading(true);
 
-      const formData = new FormData();
-      Object.entries(currentStudent).forEach(([key, value]) => {
-        if (key === "photo" && value?.file) {
-          formData.append("photo", value.file);
-        } else if (key === "subjects" || key === "coScholasticAreas") {
-          formData.append(key, JSON.stringify(value));
-        } else if (value !== null) {
-          formData.append(key, value);
-        }
-      });
 
-      const res = await uploadStudentResult(formData);
+      const res = await uploadStudentResult(currentStudent);
       if (!res.success) throw new Error(res.data?.msg || "Upload failed");
 
       toast.success("Result uploaded successfully!");

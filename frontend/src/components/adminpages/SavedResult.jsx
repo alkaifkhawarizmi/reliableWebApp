@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { FiUser, FiBook, FiPlus, FiDownload, FiTrash2, FiSearch, FiSave, FiUpload, FiImage, FiEdit2, FiX, FiCheck } from 'react-icons/fi';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  FiUser, FiBook, FiPlus, FiDownload, FiTrash2, 
+  FiSearch, FiSave, FiUpload, FiImage, FiEdit2, 
+  FiX, FiCheck, FiChevronLeft, FiChevronRight 
+} from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
 
 // API Service Functions
 const resultService = {
-  // Fetch all results with pagination and filtering
   getAllResults: async (page = 1, limit = 10, filters = {}) => {
     try {
       const queryParams = new URLSearchParams({
@@ -14,7 +17,7 @@ const resultService = {
         ...filters
       }).toString();
 
-      const response = await fetch(import.meta.env.VITE_BASE_ALL_RESULT);
+      const response = await fetch(`${import.meta.env.VITE_BASE_ALL_RESULT}?${queryParams}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -40,7 +43,6 @@ const resultService = {
     }
   },
 
-  // Delete a result
   deleteResult: async (id) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_DELETE_RESULT}/${id}`, {
@@ -65,7 +67,6 @@ const resultService = {
     }
   },
 
-  // Update a result
   updateResult: async (id, updatedData) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_UPDATE_RESULT}/${id}`, {
@@ -76,7 +77,6 @@ const resultService = {
         body: JSON.stringify(updatedData)
       });
       const data = await response.json();
-      console.log(data)
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to update result');
@@ -95,7 +95,6 @@ const resultService = {
     }
   },
 
-  // Export results
   exportResults: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams(filters).toString();
@@ -106,7 +105,6 @@ const resultService = {
         throw new Error(errorData.message || 'Failed to export results');
       }
 
-      // Handle file download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -117,9 +115,7 @@ const resultService = {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      return {
-        success: true
-      };
+      return { success: true };
     } catch (error) {
       console.error('Error exporting results:', error);
       return {
@@ -157,7 +153,18 @@ const SavedResultsSection = () => {
     subjects: []
   });
 
-  // Fetch results on component mount and when filters/page/search change
+  // Memoized grade calculation
+  const calculateGrade = useCallback((percentage) => {
+    if (percentage >= 90) return 'A+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 70) return 'B+';
+    if (percentage >= 60) return 'B';
+    if (percentage >= 50) return 'C';
+    if (percentage >= 40) return 'D';
+    return 'F';
+  }, []);
+
+  // Fetch results with debounce
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
@@ -179,21 +186,16 @@ const SavedResultsSection = () => {
       setLoading(false);
     };
 
-    const debounceTimer = setTimeout(() => {
-      fetchResults();
-    }, 500);
-
+    const debounceTimer = setTimeout(fetchResults, 500);
     return () => clearTimeout(debounceTimer);
   }, [pagination.page, filters, searchTerm]);
 
-  // Handle result deletion
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this result?')) {
       const response = await resultService.deleteResult(id);
       
       if (response.success) {
         toast.success('Result deleted successfully');
-        // Refresh results after deletion
         setResults(prev => prev.filter(result => result._id !== id));
       } else {
         toast.error(response.message);
@@ -201,7 +203,6 @@ const SavedResultsSection = () => {
     }
   };
 
-  // Handle edit button click
   const handleEditClick = (result) => {
     setEditingResult(result._id);
     setEditFormData({
@@ -211,11 +212,14 @@ const SavedResultsSection = () => {
       section: result.section,
       fatherName: result.fatherName,
       feesPaid: result.feesPaid,
-      subjects: [...result.subjects]
+      subjects: result.subjects.map(subject => ({
+        ...subject,
+        marksObtained: subject.marksObtained || 0,
+        maxMarks: subject.maxMarks || 100
+      }))
     });
   };
 
-  // Handle edit form input changes
   const handleEditFormChange = (e) => {
     const { name, value, type, checked } = e.target;
     setEditFormData(prev => ({
@@ -224,37 +228,23 @@ const SavedResultsSection = () => {
     }));
   };
 
-  // Handle subject field changes
   const handleSubjectChange = (index, field, value) => {
     const updatedSubjects = [...editFormData.subjects];
-    updatedSubjects[index][field] = field === 'marksObtained' || field === 'maxMarks' 
-      ? parseInt(value) || 0 
-      : value;
+    updatedSubjects[index] = {
+      ...updatedSubjects[index],
+      [field]: field === 'marksObtained' || field === 'maxMarks' 
+        ? parseInt(value) || 0 
+        : value
+    };
     
-    // Calculate grade if marks are updated
     if (field === 'marksObtained' || field === 'maxMarks') {
       const percentage = (updatedSubjects[index].marksObtained / updatedSubjects[index].maxMarks) * 100;
       updatedSubjects[index].grade = calculateGrade(percentage);
     }
 
-    setEditFormData(prev => ({
-      ...prev,
-      subjects: updatedSubjects
-    }));
+    setEditFormData(prev => ({ ...prev, subjects: updatedSubjects }));
   };
 
-  // Simple grade calculation
-  const calculateGrade = (percentage) => {
-    if (percentage >= 90) return 'A+';
-    if (percentage >= 80) return 'A';
-    if (percentage >= 70) return 'B+';
-    if (percentage >= 60) return 'B';
-    if (percentage >= 50) return 'C';
-    if (percentage >= 40) return 'D';
-    return 'F';
-  };
-
-  // Handle edit form submission
   const handleEditSubmit = async (id) => {
     try {
       const response = await resultService.updateResult(id, editFormData);
@@ -273,12 +263,10 @@ const SavedResultsSection = () => {
     }
   };
 
-  // Handle cancel edit
   const handleCancelEdit = () => {
     setEditingResult(null);
   };
 
-  // Handle export
   const handleExport = async () => {
     const response = await resultService.exportResults({
       className: filters.className,
@@ -291,22 +279,18 @@ const SavedResultsSection = () => {
     }
   };
 
-  // Handle page change
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.pages) {
       setPagination(prev => ({ ...prev, page: newPage }));
     }
   };
 
-  // Handle filter changes
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
-    // Reset to first page when filters change
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  // Handle sort
   const handleSort = (field) => {
     setFilters(prev => ({
       ...prev,
@@ -314,6 +298,103 @@ const SavedResultsSection = () => {
       sortOrder: prev.sortBy === field ? 
         (prev.sortOrder === 'asc' ? 'desc' : 'asc') : 'asc'
     }));
+  };
+
+  // Generate pagination buttons
+  const renderPaginationButtons = () => {
+    const buttons = [];
+    const maxVisibleButtons = 5;
+    let startPage, endPage;
+
+    if (pagination.pages <= maxVisibleButtons) {
+      startPage = 1;
+      endPage = pagination.pages;
+    } else {
+      const maxVisibleBeforeCurrent = Math.floor(maxVisibleButtons / 2);
+      const maxVisibleAfterCurrent = Math.ceil(maxVisibleButtons / 2) - 1;
+      
+      if (pagination.page <= maxVisibleBeforeCurrent) {
+        startPage = 1;
+        endPage = maxVisibleButtons;
+      } else if (pagination.page + maxVisibleAfterCurrent >= pagination.pages) {
+        startPage = pagination.pages - maxVisibleButtons + 1;
+        endPage = pagination.pages;
+      } else {
+        startPage = pagination.page - maxVisibleBeforeCurrent;
+        endPage = pagination.page + maxVisibleAfterCurrent;
+      }
+    }
+
+    // Previous button
+    buttons.push(
+      <button
+        key="prev"
+        onClick={() => handlePageChange(pagination.page - 1)}
+        disabled={pagination.page === 1}
+        className={`px-3 py-1 rounded-md ${pagination.page === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'}`}
+      >
+        <FiChevronLeft />
+      </button>
+    );
+
+    // First page
+    if (startPage > 1) {
+      buttons.push(
+        <button
+          key={1}
+          onClick={() => handlePageChange(1)}
+          className={`px-3 py-1 rounded-md ${pagination.page === 1 ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+        >
+          1
+        </button>
+      );
+      if (startPage > 2) {
+        buttons.push(<span key="ellipsis-start" className="px-2">...</span>);
+      }
+    }
+
+    // Page buttons
+    for (let i = startPage; i <= endPage; i++) {
+      buttons.push(
+        <button
+          key={i}
+          onClick={() => handlePageChange(i)}
+          className={`px-3 py-1 rounded-md ${pagination.page === i ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Last page
+    if (endPage < pagination.pages) {
+      if (endPage < pagination.pages - 1) {
+        buttons.push(<span key="ellipsis-end" className="px-2">...</span>);
+      }
+      buttons.push(
+        <button
+          key={pagination.pages}
+          onClick={() => handlePageChange(pagination.pages)}
+          className={`px-3 py-1 rounded-md ${pagination.page === pagination.pages ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+        >
+          {pagination.pages}
+        </button>
+      );
+    }
+
+    // Next button
+    buttons.push(
+      <button
+        key="next"
+        onClick={() => handlePageChange(pagination.page + 1)}
+        disabled={pagination.page === pagination.pages}
+        className={`px-3 py-1 rounded-md ${pagination.page === pagination.pages ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'}`}
+      >
+        <FiChevronRight />
+      </button>
+    );
+
+    return buttons;
   };
 
   return (
@@ -328,7 +409,7 @@ const SavedResultsSection = () => {
           <div className="relative flex-1 min-w-[200px]">
             <input
               type="text"
-              className="w-full p-2 pl-8 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full p-2 pl-8 border rounded-md focus:ring-2 focus:ring-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name, roll no..."
@@ -345,20 +426,58 @@ const SavedResultsSection = () => {
         </div>
       </div>
 
-
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+          <select
+            name="className"
+            value={filters.className}
+            onChange={handleFilterChange}
+            className="w-full p-2 border rounded-md focus:ring-blue-500"
+          >
+            <option value="">All Classes</option>
+            <option value="1">Class 1</option>
+            <option value="2">Class 2</option>
+            {/* Add more class options as needed */}
+          </select>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Fee Status</label>
           <select
             name="feesPaid"
             value={filters.feesPaid}
             onChange={handleFilterChange}
-            className="w-full p-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border rounded-md focus:ring-blue-500"
           >
             <option value="">All</option>
             <option value="true">Paid</option>
             <option value="false">Pending</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+          <select
+            name="sortBy"
+            value={filters.sortBy}
+            onChange={(e) => handleSort(e.target.value)}
+            className="w-full p-2 border rounded-md focus:ring-blue-500"
+          >
+            <option value="name">Name</option>
+            <option value="className">Class</option>
+            <option value="rollNo">Roll No</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+          <select
+            name="sortOrder"
+            value={filters.sortOrder}
+            onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value }))}
+            className="w-full p-2 border rounded-md focus:ring-blue-500"
+          >
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
           </select>
         </div>
       </div>
@@ -414,6 +533,7 @@ const SavedResultsSection = () => {
                                   value={editFormData.name}
                                   onChange={handleEditFormChange}
                                   className="w-full p-2 border rounded-md"
+                                  required
                                 />
                               </div>
                               <div>
@@ -424,6 +544,7 @@ const SavedResultsSection = () => {
                                   value={editFormData.rollNo}
                                   onChange={handleEditFormChange}
                                   className="w-full p-2 border rounded-md"
+                                  required
                                 />
                               </div>
                               <div>
@@ -434,6 +555,7 @@ const SavedResultsSection = () => {
                                   value={editFormData.className}
                                   onChange={handleEditFormChange}
                                   className="w-full p-2 border rounded-md"
+                                  required
                                 />
                               </div>
                               <div>
@@ -485,24 +607,30 @@ const SavedResultsSection = () => {
                                       onChange={(e) => handleSubjectChange(index, 'name', e.target.value)}
                                       className="p-2 border rounded-md"
                                       placeholder="Subject name"
+                                      required
                                     />
                                     <input
                                       type="number"
-                                      value={subject.marksObtained}
-                                      onChange={(e) => handleSubjectChange(index, 'marksObtained', e.target.value)}
+                                      value={subject.halfYearly || ''}
+                                      onChange={(e) => handleSubjectChange(index, 'halfYearly', e.target.value)}
                                       className="p-2 border rounded-md"
-                                      placeholder="Marks obtained"
+                                      placeholder="Half Yearly"
+                                      min="0"
                                     />
                                     <input
                                       type="number"
-                                      value={subject.maxMarks}
-                                      onChange={(e) => handleSubjectChange(index, 'maxMarks', e.target.value)}
+                                      value={subject.annualExam || ''}
+                                      onChange={(e) => handleSubjectChange(index, 'annualExam', e.target.value)}
                                       className="p-2 border rounded-md"
-                                      placeholder="Max marks"
+                                      placeholder="Annual Exam"
+                                      min="0"
+                                      required
                                     />
                                     <input
                                       type="text"
-                                      value={subject.grade}
+                                      value={subject.grade || calculateGrade(
+                                        (subject.annualExam / (subject.maxMarks || 100)) * 100
+                                      ) || ''}
                                       readOnly
                                       className="p-2 border rounded-md bg-gray-100"
                                       placeholder="Grade"
@@ -537,6 +665,9 @@ const SavedResultsSection = () => {
                               className="h-10 w-10 rounded-full object-cover" 
                               src={result.photo?.url || 'https://via.placeholder.com/150'} 
                               alt="Student" 
+                              onError={(e) => {
+                                e.target.src = 'https://via.placeholder.com/150';
+                              }}
                             />
                           </div>
                         </td>
@@ -550,14 +681,19 @@ const SavedResultsSection = () => {
                         </td>
                         <td className="px-4 py-4">
                           <div className="space-y-1">
-                            {result.subjects.map((subject) => (
-                              <div key={subject._id} className="flex justify-between text-sm">
+                            {result.subjects.slice(0, 3).map((subject) => (
+                              <div key={subject._id || subject.name} className="flex justify-between text-sm">
                                 <span className="font-medium">{subject.name}:</span>
                                 <span>
-                                  {subject.marksObtained}/{subject.maxMarks} ({subject.grade})
+                                  {subject.annualExam || '-'}/{subject.maxMarks || 100} ({subject.grade || '-'})
                                 </span>
                               </div>
                             ))}
+                            {result.subjects.length > 3 && (
+                              <div className="text-xs text-gray-500">
+                                +{result.subjects.length - 3} more subjects
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
@@ -565,6 +701,13 @@ const SavedResultsSection = () => {
                             ${result.feesPaid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                             {result.feesPaid ? 'Fees Paid' : 'Fees Pending'}
                           </span>
+                          <div className="mt-1 text-xs">
+                            {result.promotedToNextClass ? (
+                              <span className="text-green-600">Promoted</span>
+                            ) : (
+                              <span className="text-yellow-600">Not Promoted</span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
@@ -601,53 +744,8 @@ const SavedResultsSection = () => {
                 <span className="font-medium">{pagination.total}</span> results
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
-                className={`px-3 py-1 rounded-md text-sm ${pagination.page === 1 ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'}`}
-              >
-                Previous
-              </button>
-              {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                let pageNum;
-                if (pagination.pages <= 5) {
-                  pageNum = i + 1;
-                } else if (pagination.page <= 3) {
-                  pageNum = i + 1;
-                } else if (pagination.page >= pagination.pages - 2) {
-                  pageNum = pagination.pages - 4 + i;
-                } else {
-                  pageNum = pagination.page - 2 + i;
-                }
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum)}
-                    className={`px-3 py-1 rounded-md text-sm ${pagination.page === pageNum ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              {pagination.pages > 5 && pagination.page < pagination.pages - 2 && (
-                <span className="px-3 py-1">...</span>
-              )}
-              {pagination.pages > 5 && pagination.page < pagination.pages - 2 && (
-                <button
-                  onClick={() => handlePageChange(pagination.pages)}
-                  className={`px-3 py-1 rounded-md text-sm ${pagination.page === pagination.pages ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                >
-                  {pagination.pages}
-                </button>
-              )}
-              <button
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page === pagination.pages}
-                className={`px-3 py-1 rounded-md text-sm ${pagination.page === pagination.pages ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200'}`}
-              >
-                Next
-              </button>
+            <div className="flex items-center gap-2">
+              {renderPaginationButtons()}
             </div>
           </div>
         </>
