@@ -61,9 +61,6 @@ const HomePage = () => {
         setActivity(activity.data.activity);
 
         // Set a timeout for 10 seconds before hiding the loader
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 2000);
       };
       fetchMedia();
     }
@@ -92,33 +89,6 @@ const HomePage = () => {
     },
   ];
 
-  if (isLoading) {
-    return (
-      <div
-        className={`fixed inset-0 flex items-center justify-center ${
-          darkMode ? "bg-gray-900" : "bg-white"
-        } z-50`}
-      >
-        <div className="text-center">
-          <FiLoader
-            className={`animate-spin text-6xl mx-auto mb-4 ${
-              darkMode ? "text-blue-400" : "text-blue-600"
-            }`}
-          />
-          <h2
-            className={`text-2xl font-semibold ${
-              darkMode ? "text-gray-200" : "text-gray-800"
-            }`}
-          >
-            Loading Dashboard...
-          </h2>
-          <p className={`mt-2 ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
-            Please wait while we prepare your admin panel
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -314,7 +284,7 @@ const HomePage = () => {
                 <div className="space-y-4">
                   {isLoading ? (
                     <div className="flex justify-center">
-                      <Spinner /> {/* Your loading spinner component */}
+                      {/* <Spinner /> Your loading spinner component */}
                     </div>
                   ) : activity.length === 0 ? (
                     <div className="text-center py-4">

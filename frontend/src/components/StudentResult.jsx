@@ -169,9 +169,11 @@ function StudentResult() {
                   Reliable Public School, Suket
                 </h1>
                 <p className="text-xs md:text-sm">
-                  Opp. ward no. 10, Opp. HP Gas agency office, Kota road, Suket
+                  ward no. 10, Opp. HP Gas agency office, Kota road, Suket
                 </p>
                 <p className="text-xs md:text-sm">Ph: +91 93512-39366 , +91 74592-99224</p>
+
+                <p className="text-xs md:text-sm">email: rpssuket@gmail.com</p>
 
                 <h2 className="text-lg md:text-xl font-semibold mt-2">
                   Annual Report Card: {result.className} Class (2024-25)
