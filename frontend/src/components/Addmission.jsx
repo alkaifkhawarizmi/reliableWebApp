@@ -327,7 +327,7 @@ function Admission() {
                 <MdLocationOn className="text-red-500 text-xl mr-3" />
                 <div>
                   <p className="text-gray-500 text-sm">Visit Us</p>
-                  <p className="font-medium">NH-52 , Kota Road , Suket , 326530</p>
+                  <p className="font-medium">Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, suket</p>
                 </div>
               </div>
             </div>

@@ -101,7 +101,7 @@ function Footer() {
               rel="noopener noreferrer"
               className="footer-link flex items-center hover:text-yellow-200 transition-colors"
             >
-              <FaLocationDot className="mr-2" /> NH-52, Kota Road, Suket, 326530
+              <FaLocationDot className="mr-2" /> Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, suket
             </a>
             <a
               href="tel:+919351239366"

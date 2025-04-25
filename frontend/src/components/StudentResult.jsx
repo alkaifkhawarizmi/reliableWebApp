@@ -99,7 +99,7 @@ function StudentResult() {
               Reliable Public School
             </h1>
             <p className="text-gray-600 mt-2">
-              Reliable Public School, NH-52, Kota Road, Suket
+              Reliable Public School, Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, suket
             </p>
             <p className="text-gray-600">Ph : +91 93512-39366</p>
           </div>
@@ -162,7 +162,7 @@ function StudentResult() {
                 <h1 className="text-xl md:text-2xl font-bold">
                   Relible Public School, Suket
                 </h1>
-                <p className="text-xs md:text-sm">NH-52, Kota Road, Suket</p>
+                <p className="text-xs md:text-sm">Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, suket</p>
                 <p className="text-xs md:text-sm">Ph : +91 93512-39366 </p>
                 <h2 className="text-lg md:text-xl font-semibold mt-2">
                   Annual Report Card : {result.className} Class (2024-25)

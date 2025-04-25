@@ -96,7 +96,7 @@ function ContactUs() {
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-blue-600 transition-colors"
                     >
-                      NH-52, Kota Road, Suket, 326530
+                      Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, suket
                     </a>
                   </div>
                 </div>
