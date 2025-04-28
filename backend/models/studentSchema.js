@@ -17,8 +17,14 @@ const studentSchema = new mongoose.Schema({
   },
   subjects: [{
     name: { type: String, required: true },
-    halfYearly: { type: Number },
-    annualExam: { type: Number, required: true },
+    halfYearly: {
+      marksObtained: { type: Number },
+      totalMarks: { type: Number } // Total marks for half-yearly
+    },
+    annualExam: {
+      marksObtained: { type: Number, required: true },
+      totalMarks: { type: Number } // Total marks for annual exam
+    },
     grade: { type: String, required: true }
   }],
   coScholasticAreas: [{
