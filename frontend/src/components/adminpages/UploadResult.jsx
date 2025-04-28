@@ -149,52 +149,52 @@ export default function StudentForm() {
   };
 
   const saveStudent = async () => {
-    try {
-      if (!currentStudent.name || !currentStudent.rollNo || !currentStudent.className || !currentStudent.sessionYear) {
-        toast.error("Please fill all required fields");
-        return;
-      }
-
-      setIsUploading(true);
-
-      const payload = { ...currentStudent };
-      payload.subjects = payload.subjects.map(sub => ({
-        ...sub,
-        halfYearly: {
-          obtained: parseFloat(sub.halfYearly.obtained) || 0,
-          total: parseFloat(sub.halfYearly.total) || 0,
-        },
-        annualExam: {
-          obtained: parseFloat(sub.annualExam.obtained) || 0,
-          total: parseFloat(sub.annualExam.total) || 0,
-        },
-      }));
-
-      const res = await uploadStudentResult(payload);
-      if (!res.success) throw new Error(res.data?.msg || "Upload failed");
-
-      toast.success("Result uploaded successfully!");
-      
-      setCurrentStudent({
-        ...currentStudent,
-        name: "",
-        rollNo: "",
-        className: "",
-        sessionYear: "",
-        subjects: currentStudent.subjects.map(sub => ({
-          name: sub.name,
-          halfYearly: { obtained: "", total: "" },
-          annualExam: { obtained: "", total: "" },
-          grade: "",
-        })),
-        feesPaid: false,
-      });
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setIsUploading(false);
+  try {
+    if (!currentStudent.name || !currentStudent.rollNo || !currentStudent.className || !currentStudent.sessionYear) {
+      toast.error("Please fill all required fields");
+      return;
     }
-  };
+
+    setIsUploading(true);
+
+    const payload = { ...currentStudent };
+    payload.subjects = payload.subjects.map(sub => ({
+      ...sub,
+      halfYearly: {
+        obtained: isNaN(parseFloat(sub.halfYearly.obtained)) ? 0 : parseFloat(sub.halfYearly.obtained),
+        total: isNaN(parseFloat(sub.halfYearly.total)) ? 0 : parseFloat(sub.halfYearly.total),
+      },
+      annualExam: {
+        obtained: isNaN(parseFloat(sub.annualExam.obtained)) ? 0 : parseFloat(sub.annualExam.obtained),
+        total: isNaN(parseFloat(sub.annualExam.total)) ? 0 : parseFloat(sub.annualExam.total),
+      },
+    }));
+
+    const res = await uploadStudentResult(payload);
+    if (!res.success) throw new Error(res.data?.msg || "Upload failed");
+
+    toast.success("Result uploaded successfully!");
+    
+    setCurrentStudent({
+      ...currentStudent,
+      name: "",
+      rollNo: "",
+      className: "",
+      sessionYear: "",
+      subjects: currentStudent.subjects.map(sub => ({
+        name: sub.name,
+        halfYearly: { obtained: "", total: "" },
+        annualExam: { obtained: "", total: "" },
+        grade: "",
+      })),
+      feesPaid: false,
+    });
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
