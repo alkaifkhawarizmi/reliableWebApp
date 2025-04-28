@@ -312,6 +312,20 @@ const uploadResult = async (req, res) => {
         });
       }
 
+      // IMPORTANT: Restructure subjects to match new schema
+      subjects = subjects.map(sub => ({
+        name: sub.name,
+        halfYearly: {
+          marksObtained: sub.halfYearlyMarksObtained,
+          totalMarks: sub.halfYearlyTotalMarks
+        },
+        annualExam: {
+          marksObtained: sub.annualExamMarksObtained,
+          totalMarks: sub.annualExamTotalMarks
+        },
+        grade: sub.grade
+      }));
+
       if (req.body.coScholasticAreas) {
         coScholasticAreas = JSON.parse(req.body.coScholasticAreas);
         if (!Array.isArray(coScholasticAreas)) {
@@ -358,7 +372,7 @@ const uploadResult = async (req, res) => {
       });
     }
 
-    // 5. Upload to Cloudinary - ensure file exists
+    // 5. Upload to Cloudinary
     const tempFilePath = req.file.path;
     if (!tempFilePath) {
       return res.status(400).json({
@@ -407,7 +421,6 @@ const uploadResult = async (req, res) => {
     });
 
   } catch (error) {
-    // Clean up any uploaded files if error occurred
     if (req.file?.path) {
       try {
         fs.unlinkSync(req.file.path);
