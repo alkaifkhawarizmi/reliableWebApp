@@ -16,11 +16,24 @@ export default function StudentForm() {
     dob: "",
     admissionNo: "",
     photo: null,
+    sessionYear: "",
     totalPresentDays: 0,
+    attendanceRemarks: "",
     promotedToNextClass: false,
+    resultStatus: "",
     subjects: [
-      { name: "English", halfYearly: "", annualExam: "", grade: "" },
-      { name: "Hindi", halfYearly: "", annualExam: "", grade: "" },
+      {
+        name: "English",
+        halfYearly: { obtained: "", total: "" },
+        annualExam: { obtained: "", total: "" },
+        grade: ""
+      },
+      {
+        name: "Hindi",
+        halfYearly: { obtained: "", total: "" },
+        annualExam: { obtained: "", total: "" },
+        grade: ""
+      },
     ],
     coScholasticAreas: [
       { area: "Work & Art Education", grade: "", remarks: "" },
@@ -75,11 +88,15 @@ export default function StudentForm() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubjectChange = (index, field, value) => {
+  const handleSubjectChange = (index, field, subfield, value) => {
     const newSubjects = [...currentStudent.subjects];
-    newSubjects[index][field] = value;
+    if (subfield) {
+      newSubjects[index][field][subfield] = value;
+    } else {
+      newSubjects[index][field] = value;
+    }
 
-    if (field === "annualExam") {
+    if (field === "annualExam" && subfield === "obtained") {
       newSubjects[index].grade = calculateGrade(value);
     }
 
@@ -89,10 +106,7 @@ export default function StudentForm() {
   const handleCoScholasticChange = (index, field, value) => {
     const newCoScholasticAreas = [...currentStudent.coScholasticAreas];
     newCoScholasticAreas[index][field] = value;
-    setCurrentStudent({
-      ...currentStudent,
-      coScholasticAreas: newCoScholasticAreas,
-    });
+    setCurrentStudent({ ...currentStudent, coScholasticAreas: newCoScholasticAreas });
   };
 
   const addSubject = () => {
@@ -100,7 +114,12 @@ export default function StudentForm() {
       ...currentStudent,
       subjects: [
         ...currentStudent.subjects,
-        { name: "", halfYearly: "", annualExam: "", grade: "" },
+        {
+          name: "",
+          halfYearly: { obtained: "", total: "" },
+          annualExam: { obtained: "", total: "" },
+          grade: "",
+        },
       ],
     });
   };
@@ -131,35 +150,42 @@ export default function StudentForm() {
 
   const saveStudent = async () => {
     try {
-      if (!currentStudent.name || !currentStudent.rollNo || !currentStudent.className) {
+      if (!currentStudent.name || !currentStudent.rollNo || !currentStudent.className || !currentStudent.sessionYear) {
         toast.error("Please fill all required fields");
         return;
       }
 
-      for (const subject of currentStudent.subjects) {
-        if (!subject.name || !subject.annualExam) {
-          toast.error("Please fill all subject fields");
-          return;
-        }
-      }
-
       setIsUploading(true);
 
+      const payload = { ...currentStudent };
+      payload.subjects = payload.subjects.map(sub => ({
+        ...sub,
+        halfYearly: {
+          obtained: parseFloat(sub.halfYearly.obtained) || 0,
+          total: parseFloat(sub.halfYearly.total) || 0,
+        },
+        annualExam: {
+          obtained: parseFloat(sub.annualExam.obtained) || 0,
+          total: parseFloat(sub.annualExam.total) || 0,
+        },
+      }));
 
-      const res = await uploadStudentResult(currentStudent);
+      const res = await uploadStudentResult(payload);
       if (!res.success) throw new Error(res.data?.msg || "Upload failed");
 
       toast.success("Result uploaded successfully!");
+      
       setCurrentStudent({
         ...currentStudent,
         name: "",
         rollNo: "",
         className: "",
+        sessionYear: "",
         subjects: currentStudent.subjects.map(sub => ({
           name: sub.name,
-          halfYearly: "",
-          annualExam: "",
-          grade: ""
+          halfYearly: { obtained: "", total: "" },
+          annualExam: { obtained: "", total: "" },
+          grade: "",
         })),
         feesPaid: false,
       });
@@ -210,6 +236,7 @@ export default function StudentForm() {
             { label: "Admission No.", name: "admissionNo" },
             { label: "Class/Grade*", name: "className", required: true },
             { label: "Section", name: "section" },
+            { label: "Session Year*", name: "sessionYear", required: true },
           ].map((field) => (
             <div key={field.name}>
               <label className="block text-sm font-medium mb-1">{field.label}</label>
@@ -242,7 +269,7 @@ export default function StudentForm() {
 
           {/* Present Days */}
           <div>
-            <label className="block text-sm font-medium mb-1">Present Days</label>
+            <label className="block text-sm font-medium mb-1">Total Present Days</label>
             <input
               type="number"
               name="totalPresentDays"
@@ -250,97 +277,102 @@ export default function StudentForm() {
               onChange={handleStudentChange}
               className="w-full p-2 border rounded-md"
               min="0"
-              placeholder="Total present days"
             />
           </div>
 
-          {/* Status Toggles */}
-          <div className="flex items-end">
-            <label className="block text-sm font-medium mb-1 mr-4">Fees Status</label>
-            <button
-              type="button"
-              onClick={toggleFeesStatus}
-              className={`px-4 py-2 rounded-md text-white ${
-                currentStudent.feesPaid ? "bg-green-600" : "bg-red-600"
-              }`}
-            >
-              {currentStudent.feesPaid ? "Paid" : "Unpaid"}
-            </button>
+          {/* Attendance Remarks */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Attendance Remarks</label>
+            <input
+              type="text"
+              name="attendanceRemarks"
+              value={currentStudent.attendanceRemarks}
+              onChange={handleStudentChange}
+              className="w-full p-2 border rounded-md"
+            />
           </div>
 
-          <div className="flex items-end">
-            <label className="block text-sm font-medium mb-1 mr-4">Promotion Status</label>
-            <button
-              type="button"
-              onClick={togglePromotionStatus}
-              className={`px-4 py-2 rounded-md text-white ${
-                currentStudent.promotedToNextClass ? "bg-green-600" : "bg-yellow-600"
-              }`}
-            >
-              {currentStudent.promotedToNextClass ? "Promoted" : "Not Promoted"}
-            </button>
+          {/* Result Status */}
+          <div>
+            <label className="block text-sm font-medium mb-1">Result Status</label>
+            <input
+              type="text"
+              name="resultStatus"
+              value={currentStudent.resultStatus}
+              onChange={handleStudentChange}
+              className="w-full p-2 border rounded-md"
+            />
           </div>
         </div>
 
-        {/* Scholastic Areas */}
-        <h2 className="text-2xl font-bold mb-6 flex items-center">
-          <FiBook className="mr-2" /> Scholastic Areas
-        </h2>
-
-        <div className="overflow-x-auto mb-8">
-          <table className="min-w-full border border-gray-300">
+        {/* Subjects Table */}
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold">Subjects</h3>
+          <table className="min-w-full mt-4 table-auto">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-3 py-2">Subject</th>
-                <th className="border border-gray-300 px-3 py-2">Half Yearly</th>
-                <th className="border border-gray-300 px-3 py-2">Annual Exam</th>
-                <th className="border border-gray-300 px-3 py-2">Grade</th>
-                <th className="border border-gray-300 px-3 py-2">Actions</th>
+              <tr>
+                <th className="border px-4 py-2">Subject</th>
+                <th className="border px-4 py-2">Half Yearly - Marks</th>
+                <th className="border px-4 py-2">Annual Exam - Marks</th>
+                <th className="border px-4 py-2">Grade</th>
+                <th className="border px-4 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
               {currentStudent.subjects.map((subject, index) => (
                 <tr key={index}>
-                  <td className="border border-gray-300 px-3 py-2">
+                  <td className="border px-4 py-2">
                     <input
                       type="text"
                       value={subject.name}
-                      onChange={(e) => handleSubjectChange(index, "name", e.target.value)}
-                      className="w-full p-1 border rounded focus:ring-2 focus:ring-blue-500"
-                      required
+                      onChange={(e) => handleSubjectChange(index, "name", null, e.target.value)}
+                      className="w-full p-2 border rounded-md"
                     />
                   </td>
-                  <td className="border border-gray-300 px-3 py-2">
+                  <td className="border px-4 py-2">
                     <input
                       type="number"
-                      value={subject.halfYearly}
-                      onChange={(e) => handleSubjectChange(index, "halfYearly", e.target.value)}
-                      className="w-full p-1 border rounded focus:ring-2 focus:ring-blue-500"
-                      min="0"
-                      max="100"
-                      step="0.01"
+                      value={subject.halfYearly.obtained}
+                      onChange={(e) => handleSubjectChange(index, "halfYearly", "obtained", e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                      placeholder="Obtained"
                     />
-                  </td>
-                  <td className="border border-gray-300 px-3 py-2">
                     <input
                       type="number"
-                      value={subject.annualExam}
-                      onChange={(e) => handleSubjectChange(index, "annualExam", e.target.value)}
-                      className="w-full p-1 border rounded focus:ring-2 focus:ring-blue-500"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      required
+                      value={subject.halfYearly.total}
+                      onChange={(e) => handleSubjectChange(index, "halfYearly", "total", e.target.value)}
+                      className="w-full p-2 border rounded-md mt-2"
+                      placeholder="Total"
                     />
                   </td>
-                  <td className="border border-gray-300 px-3 py-2 bg-gray-50 text-center">
-                    {subject.grade || "-"}
+                  <td className="border px-4 py-2">
+                    <input
+                      type="number"
+                      value={subject.annualExam.obtained}
+                      onChange={(e) => handleSubjectChange(index, "annualExam", "obtained", e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                      placeholder="Obtained"
+                    />
+                    <input
+                      type="number"
+                      value={subject.annualExam.total}
+                      onChange={(e) => handleSubjectChange(index, "annualExam", "total", e.target.value)}
+                      className="w-full p-2 border rounded-md mt-2"
+                      placeholder="Total"
+                    />
                   </td>
-                  <td className="border border-gray-300 px-3 py-2 text-center">
+                  <td className="border px-4 py-2">
+                    <input
+                      type="text"
+                      value={subject.grade}
+                      className="w-full p-2 border rounded-md"
+                      readOnly
+                    />
+                  </td>
+                  <td className="border px-4 py-2">
                     <button
                       onClick={() => removeSubject(index)}
-                      className="text-red-600 hover:text-red-800 p-1"
-                      title="Remove subject"
+                      className="text-red-500 hover:text-red-700"
                     >
                       <FiTrash2 />
                     </button>
@@ -349,90 +381,66 @@ export default function StudentForm() {
               ))}
             </tbody>
           </table>
+          <button
+            onClick={addSubject}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md flex items-center hover:bg-blue-700"
+          >
+            <FiPlus className="mr-2" />
+            Add Subject
+          </button>
         </div>
 
         {/* Co-Scholastic Areas */}
-        <h2 className="text-2xl font-bold mb-6 flex items-center">
-          <FiBook className="mr-2" /> Co-Scholastic Areas
-        </h2>
-
-        <div className="overflow-x-auto mb-8">
-          <table className="min-w-full border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 px-3 py-2">Activity</th>
-                <th className="border border-gray-300 px-3 py-2">Grade</th>
-                <th className="border border-gray-300 px-3 py-2">Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentStudent.coScholasticAreas.map((area, index) => (
-                <tr key={index}>
-                  <td className="border border-gray-300 px-3 py-2">
-                    <input
-                      type="text"
-                      value={area.area}
-                      onChange={(e) => handleCoScholasticChange(index, "area", e.target.value)}
-                      className="w-full p-1 border rounded"
-                    />
-                  </td>
-                  <td className="border border-gray-300 px-3 py-2">
-                    <input
-                      type="text"
-                      value={area.grade}
-                      onChange={(e) => handleCoScholasticChange(index, "grade", e.target.value)}
-                      className="w-full p-1 border rounded"
-                    />
-                  </td>
-                  <td className="border border-gray-300 px-3 py-2">
-                    <input
-                      type="text"
-                      value={area.remarks}
-                      onChange={(e) => handleCoScholasticChange(index, "remarks", e.target.value)}
-                      className="w-full p-1 border rounded"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold">Co-Scholastic Areas</h3>
+          <div className="mt-4">
+            {currentStudent.coScholasticAreas.map((area, index) => (
+              <div key={index} className="grid grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Area</label>
+                  <input
+                    type="text"
+                    value={area.area}
+                    onChange={(e) => handleCoScholasticChange(index, "area", e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                    readOnly
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Grade</label>
+                  <input
+                    type="text"
+                    value={area.grade}
+                    onChange={(e) => handleCoScholasticChange(index, "grade", e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Remarks</label>
+                  <input
+                    type="text"
+                    value={area.remarks}
+                    onChange={(e) => handleCoScholasticChange(index, "remarks", e.target.value)}
+                    className="w-full p-2 border rounded-md"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Form Actions */}
-        <div className="flex justify-between">
-          <button
-            onClick={addSubject}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            <FiPlus className="mr-2" /> Add Subject
-          </button>
-
+        {/* Save Button */}
+        <div className="mt-6 flex justify-end">
           <button
             onClick={saveStudent}
             disabled={isUploading}
-            className={`flex items-center px-6 py-2 text-white rounded-md ${
-              isUploading ? "bg-green-700" : "bg-green-600 hover:bg-green-700"
-            }`}
+            className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400"
           >
-            {isUploading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Uploading...
-              </>
-            ) : (
-              <>
-                <FiSave className="mr-2" />
-                Upload Result
-              </>
-            )}
+            <FiSave className="mr-2" />
+            {isUploading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
-
-      <SavedResultsSection />
     </div>
   );
-}
+             }
