@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { FiTrash2, FiUpload } from "react-icons/fi";
-import { uploadStudentResult } from "../../api/upload";
+import { uploadStudentResult } from "../../api/upload.js";
 
 const AddResult = () => {
   const [currentStudent, setCurrentStudent] = useState({
