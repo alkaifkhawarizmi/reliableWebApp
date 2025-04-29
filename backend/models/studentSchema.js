@@ -33,4 +33,4 @@ const studentSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = mongoose.model("Admin", studentSchema);
