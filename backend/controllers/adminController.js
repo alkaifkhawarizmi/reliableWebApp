@@ -347,6 +347,8 @@ const uploadResult = async (req, res) => {
 
     const student = await Student.create(studentData);
 
+    console.log(student)
+
     const activity = new RecentActivity({
       description: `Principal uploaded result for rollNo: ${rollNo}`
     });
@@ -387,7 +389,7 @@ const getResult = async (req, res) => {
         msg: "Student result not found"
       });
     }
-
+console.log(student)
     return res.status(200).json({
       success: true,
       student
