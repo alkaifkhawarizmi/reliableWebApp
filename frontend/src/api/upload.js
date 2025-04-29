@@ -81,7 +81,7 @@ export const uploadStudentResult = async (studentData) => {
           subject.annualExam.total === "") {
         subjectErrors.push(`${subject.name}: Annual exam marks are required`);
       }
-      if (isNaN(parseFloat(subject.annualExam.obtained)) {
+      if (isNaN(parseFloat(subject.annualExam.obtained))) {
         subjectErrors.push(`${subject.name}: Obtained marks must be a number`);
       }
       if (isNaN(parseFloat(subject.annualExam.total))) {
