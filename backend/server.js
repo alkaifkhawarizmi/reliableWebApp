@@ -12,10 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })) 
 
-// Configure CORS properly (combine your two cors usages)
-app.use(cors({
-  origin: '*',
-}));
+// Configure CORS properly (combine your two cors usages
 
 
 // Mount router
