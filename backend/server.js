@@ -13,7 +13,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })) 
 
 // Configure CORS properly (combine your two cors usages
-
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://rpssuket.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Mount router
 app.use('/api/v1/', adminRoutes);
