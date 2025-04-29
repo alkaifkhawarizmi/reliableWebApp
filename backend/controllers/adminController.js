@@ -1,4 +1,3 @@
-const Admin = require('../models/admin');
 const Student = require('../models/studentSchema');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
