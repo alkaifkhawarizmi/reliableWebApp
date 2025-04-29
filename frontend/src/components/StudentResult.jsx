@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { FaDownload } from "react-icons/fa";
 import Navbar from "./Navbar";
 import axios from "axios";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import schoollogo from "./assets/schoollogo.jpg";
 
 function StudentResult() {
@@ -47,6 +45,7 @@ function StudentResult() {
     };
 
     try {
+      const { default: html2canvas } = await import("html2canvas");
       const canvas = await html2canvas(element, options);
       const data = canvas.toDataURL("image/png");
       const link = document.createElement("a");
@@ -60,7 +59,6 @@ function StudentResult() {
     }
   };
 
-  // Calculate Total Obtained Marks, Total Max Marks, Percentage, Grade
   const calculateAggregate = () => {
     if (!result?.subjects?.length) return { obtained: 0, max: 0, percentage: 0, grade: "N/A" };
 
@@ -68,9 +66,9 @@ function StudentResult() {
     let totalMax = 0;
 
     result.subjects.forEach((subject) => {
+      const maxMarks = subject.maxMarks || (subject.name.toLowerCase().includes("hindi") ? 200 : 100);
       const obtainedMarks = parseFloat(subject.annualExam) || 0;
-      const maxMarks = subject.name.toLowerCase() === "hindi" ? 200 : 100;
-
+      
       totalObtained += obtainedMarks;
       totalMax += maxMarks;
     });
@@ -86,19 +84,27 @@ function StudentResult() {
     };
   };
 
-  const calculateGrade = (marks) => {
-    if (marks >= 91) return "A1";
-    if (marks >= 81) return "A2";
-    if (marks >= 71) return "B1";
-    if (marks >= 61) return "B2";
-    if (marks >= 51) return "C1";
-    if (marks >= 41) return "C2";
-    if (marks >= 33) return "D";
+  const calculateGrade = (percentage) => {
+    if (percentage >= 91) return "A1";
+    if (percentage >= 81) return "A2";
+    if (percentage >= 71) return "B1";
+    if (percentage >= 61) return "B2";
+    if (percentage >= 51) return "C1";
+    if (percentage >= 41) return "C2";
+    if (percentage >= 33) return "D";
     return "E";
   };
 
-  const getMaxMarks = (subjectName) => {
-    return subjectName.toLowerCase() === "hindi" ? 200 : 100;
+  const getMaxMarks = (subject) => {
+    return subject.maxMarks || (subject.name.toLowerCase().includes("hindi") ? 200 : 100);
+  };
+
+  const getSubjectGrade = (subject) => {
+    if (subject.grade) return subject.grade;
+    
+    const maxMarks = getMaxMarks(subject);
+    const percentage = (parseFloat(subject.annualExam) / maxMarks) * 100;
+    return calculateGrade(percentage);
   };
 
   return (
@@ -107,9 +113,7 @@ function StudentResult() {
       <div className="min-h-screen mt-16 bg-gray-100 pb-20">
         <div className="max-w-6xl mx-auto px-4 py-12">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-800">
-              Reliable Public School
-            </h1>
+            <h1 className="text-4xl font-bold text-gray-800">Reliable Public School</h1>
             <p className="text-gray-600 mt-2">
               Reliable Public School, Opp.ward. no. 10 Opp. Hp Gas agency office, Kota road, Suket
             </p>
@@ -221,7 +225,6 @@ function StudentResult() {
                 </div>
               </div>
 
-              {/* Attendance */}
               <div className="p-4 border-b border-gray-300">
                 <h3 className="font-bold mb-2">ATTENDANCE</h3>
                 <p className="text-center font-medium">
@@ -229,7 +232,6 @@ function StudentResult() {
                 </p>
               </div>
 
-              {/* Marks Table */}
               <div className="p-4 border-b border-gray-300 overflow-x-auto">
                 <h3 className="font-bold mb-2 text-center">SCHOLASTIC AREAS</h3>
                 <div className="min-w-[300px]">
@@ -247,13 +249,13 @@ function StudentResult() {
                         <tr key={index}>
                           <td className="border border-gray-300 px-2 py-1">{subject.name}</td>
                           <td className="border border-gray-300 px-2 py-1 text-center">
-                            {subject.halfYearly || "-"} / {getMaxMarks(subject.name)}
+                            {subject.halfYearly || "-"} / {getMaxMarks(subject)}
                           </td>
                           <td className="border border-gray-300 px-2 py-1 text-center">
-                            {subject.annualExam || "-"} / {getMaxMarks(subject.name)}
+                            {subject.annualExam || "-"} / {getMaxMarks(subject)}
                           </td>
                           <td className="border border-gray-300 px-2 py-1 text-center">
-                            {subject.grade || calculateGrade(subject.annualExam) || "-"}
+                            {getSubjectGrade(subject)}
                           </td>
                         </tr>
                       ))}
@@ -262,19 +264,29 @@ function StudentResult() {
                 </div>
               </div>
 
-              {/* Aggregate */}
               <div className="p-4 border-b border-gray-300">
-                <h3 className="font-bold mb-1">Aggregate Marks: {calculateAggregate().obtained} / {calculateAggregate().max}</h3>
-                <h3 className="font-bold mb-1">Percentage: {calculateAggregate().percentage}%</h3>
-                <h3 className="font-bold">Grade: {calculateAggregate().grade}</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-bold mb-2">
+                      Total Obtained Marks: {calculateAggregate().obtained} / {calculateAggregate().max}
+                    </h3>
+                  </div>
+                  <div>
+                    <h3 className="font-bold mb-2">
+                      Percentage: {calculateAggregate().percentage}%
+                    </h3>
+                  </div>
+                </div>
+                <h3 className="font-bold">
+                  Grade: {calculateAggregate().grade}
+                </h3>
               </div>
 
-              {/* Co-Scholastic */}
               <div className="p-4 border-b border-gray-300 overflow-x-auto">
                 <h3 className="font-bold mb-2">Co-Scholastic Areas</h3>
                 <table className="w-full">
                   <tbody>
-                    {result.coScholasticAreas.map((area, index) => (
+                    {result.coScholasticAreas?.map((area, index) => (
                       <tr key={index}>
                         <td className="py-1">{area.area}</td>
                         <td className="py-1">Grade: {area.grade || "-"}</td>
@@ -285,7 +297,41 @@ function StudentResult() {
                 </table>
               </div>
 
-              {/* Footer */}
+              <div className="p-4 border-b border-gray-300">
+                <h3 className="font-bold mb-2">CLASS TEACHER'S REMARK</h3>
+                <p className="border border-gray-300 p-2 rounded">{result.remarks || "Good"}</p>
+                <p className="mt-2 font-medium">
+                  PROMOTED TO:{" "}
+                  {result.promotedToNextClass
+                    ? result.className.replace(/\d+/, (n) => String(parseInt(n) + 1))
+                    : "Same Class"}
+                </p>
+              </div>
+
+              <div className="p-4 overflow-x-auto">
+                <h3 className="font-bold mb-2">GRADING SYSTEM (SCHOLASTIC)</h3>
+                <div className="min-w-[300px]">
+                  <table className="w-full border-collapse text-center">
+                    <tbody>
+                      <tr>
+                        {["91-100", "81-90", "71-80", "61-70", "51-60", "41-50", "33-40"].map((range) => (
+                          <td key={range} className="border border-gray-300 px-2 py-1 text-xs md:text-sm">
+                            {range}
+                          </td>
+                        ))}
+                      </tr>
+                      <tr>
+                        {["A1", "A2", "B1", "B2", "C1", "C2", "D"].map((grade) => (
+                          <td key={grade} className="border border-gray-300 px-2 py-1 text-xs md:text-sm">
+                            {grade}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               <div className="p-4 bg-gray-100 flex justify-between">
                 <p>Date: {new Date().toLocaleDateString()}</p>
                 <div className="text-center">
@@ -294,7 +340,6 @@ function StudentResult() {
                 </div>
               </div>
 
-              {/* Download Button */}
               <div className="p-4 text-center">
                 <button
                   onClick={handleDownload}
@@ -304,7 +349,6 @@ function StudentResult() {
                   Download Result
                 </button>
               </div>
-
             </div>
           )}
         </div>
