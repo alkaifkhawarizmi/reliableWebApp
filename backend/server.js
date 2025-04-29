@@ -14,10 +14,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })) 
 
 // Configure CORS properly (combine your two cors usages)
-app.use(cors({
-  origin: ['https://rpssuket.com','http://rpssuket.com'], // Frontend domains
-  credentials: true
-}));
 
 // Mount router
 app.use('/api/v1/', adminRoutes);
