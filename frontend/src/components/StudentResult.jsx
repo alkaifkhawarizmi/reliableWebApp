@@ -99,7 +99,7 @@ function StudentResult() {
               Reliable Public School
             </h1>
             <p className="text-gray-600 mt-2">
-              Reliable Public School, Opp.ward. no. 10 Opp. Hp Gas agency
+              Reliable Public School, ward. no. 10 Opp. Hp Gas agency
               office, Kota road, suket
             </p>
             <p className="text-gray-600">Ph : +91 93512-39366</p>
