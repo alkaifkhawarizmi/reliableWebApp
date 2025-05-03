@@ -23,6 +23,7 @@ import UploadResult from "./UploadResult";
 import UploadNews from "./AnnoucementForm.jsx";
 import Notifications from "./Notifications.jsx";
 import BackButton from "../BackButton.jsx";
+import Spinner from "./Spinner.jsx";
 
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -35,7 +36,7 @@ const HomePage = () => {
     return savedTheme ? savedTheme === "dark" : false;
   });
   const [countdown, setCountdown] = useState(10);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [activity, setActivity] = useState([]);
 
   // Apply dark mode class to document element
@@ -55,10 +56,12 @@ const HomePage = () => {
       navigate("/admin/login");
     } else {
       const fetchMedia = async () => {
+        setIsLoading(true)
         const media = await gettAllMedia();
         const activity = await getAllActivity();
         setMedia(media.media);
         setActivity(activity.data.activity);
+        setIsLoading(false)
 
         // Set a timeout for 10 seconds before hiding the loader
       };
@@ -284,7 +287,7 @@ const HomePage = () => {
                 <div className="space-y-4">
                   {isLoading ? (
                     <div className="flex justify-center">
-                      {/* <Spinner /> Your loading spinner component */}
+                      <Spinner /> 
                     </div>
                   ) : activity.length === 0 ? (
                     <div className="text-center py-4">

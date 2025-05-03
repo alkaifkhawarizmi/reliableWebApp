@@ -85,14 +85,14 @@ function StudentResult() {
   };
 
   const calculateGrade = (percentage) => {
-    if (percentage >= 91) return "A1";
-    if (percentage >= 81) return "A2";
-    if (percentage >= 71) return "B1";
-    if (percentage >= 61) return "B2";
-    if (percentage >= 51) return "C1";
-    if (percentage >= 41) return "C2";
-    if (percentage >= 33) return "D";
-    return "E";
+    if (percentage >= 91) return "A+";
+    if (percentage >= 81) return "A";
+    if (percentage >= 71) return "B";
+    if (percentage >= 61) return "C";
+    if (percentage >= 51) return "D";
+    if (percentage >= 41) return "E";
+    if (percentage >= 33) return "F";
+    return "X";
   };
 
   const getMaxMarks = (subject) => {
