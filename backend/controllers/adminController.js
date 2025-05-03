@@ -1,4 +1,3 @@
-const Admin = require('../models/admin');
 const Student = require('../models/studentSchema');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -290,76 +289,24 @@ const deleteMedia = async (req, res) => {
   }
 };
 
-
 const uploadResult = async (req, res) => {
   try {
-    // 1. First check if file was uploaded
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        msg: 'Student photo is required'
-      });
-    }
-
-    // 2. Parse and validate subjects and coScholasticAreas
-    let subjects, coScholasticAreas;
-    try {
-      subjects = JSON.parse(req.body.subjects);
-      if (!Array.isArray(subjects)) {
-        return res.status(400).json({
-          success: false,
-          msg: 'Subjects must be an array'
-        });
-      }
-
-      if (req.body.coScholasticAreas) {
-        coScholasticAreas = JSON.parse(req.body.coScholasticAreas);
-        if (!Array.isArray(coScholasticAreas)) {
-          return res.status(400).json({
-            success: false,
-            msg: 'Co-scholastic areas must be an array'
-          });
-        }
-      }
-    } catch (e) {
-      return res.status(400).json({
-        success: false,
-        msg: 'Invalid data format for subjects or co-scholastic areas'
-      });
-    }
-
-    // 3. Validate required fields
-    const { 
-      name, 
-      rollNo, 
-      className, 
-      section, 
-      fatherName, 
-      motherName, 
+    const {
+      name,
+      rollNo,
+      className,
+      section,
+      fatherName,
+      motherName,
       dob,
       totalPresentDays,
       promotedToNextClass,
-      feesPaid 
+      feesPaid,
+      subjects,
+      coScholasticAreas
     } = req.body;
 
-    if (!name || !rollNo || !className || !section || !fatherName || feesPaid === undefined) {
-      return res.status(400).json({
-        success: false,
-        msg: 'All required fields are missing'
-      });
-    }
-
-    // 4. Check for existing student
-    const existingStudent = await Student.findOne({ rollNo });
-    if (existingStudent) {
-      return res.status(409).json({ 
-        success: false,
-        msg: 'A student with this roll number already exists' 
-      });
-    }
-
-    // 5. Upload to Cloudinary - ensure file exists
-    const tempFilePath = req.file.path;
+    const tempFilePath = req.file?.path;
     if (!tempFilePath) {
       return res.status(400).json({
         success: false,
@@ -372,7 +319,13 @@ const uploadResult = async (req, res) => {
       resource_type: 'auto'
     });
 
-    // 6. Create student record
+    // Remove halfYearly from each subject (if passed by frontend)
+    const sanitizedSubjects = subjects.map(sub => ({
+      name: sub.name,
+      annualExam: sub.annualExam,
+      grade: sub.grade
+    }));
+
     const studentData = {
       name,
       rollNo,
@@ -384,7 +337,7 @@ const uploadResult = async (req, res) => {
       totalPresentDays: totalPresentDays ? parseInt(totalPresentDays) : 0,
       promotedToNextClass: promotedToNextClass === 'true',
       feesPaid,
-      subjects,
+      subjects: sanitizedSubjects,
       coScholasticAreas: coScholasticAreas || [],
       photo: {
         url: cloudinaryResult.secure_url,
@@ -394,7 +347,8 @@ const uploadResult = async (req, res) => {
 
     const student = await Student.create(studentData);
 
-    // 7. Record activity
+    console.log(student)
+
     const activity = new RecentActivity({
       description: `Principal uploaded result for rollNo: ${rollNo}`
     });
@@ -407,7 +361,6 @@ const uploadResult = async (req, res) => {
     });
 
   } catch (error) {
-    // Clean up any uploaded files if error occurred
     if (req.file?.path) {
       try {
         fs.unlinkSync(req.file.path);
@@ -415,16 +368,15 @@ const uploadResult = async (req, res) => {
         console.error('Error deleting temp file:', e);
       }
     }
-    
+
     console.error('Error uploading result:', error);
     return res.status(500).json({
       success: false,
-      msg: process.env.NODE_ENV === 'development' 
-        ? error.message 
-        : 'Failed to upload student result'
+      msg: 'Failed to upload student result'
     });
   }
 };
+   
 
 const getResult = async (req, res) => {
   try {
@@ -437,7 +389,7 @@ const getResult = async (req, res) => {
         msg: "Student result not found"
       });
     }
-
+console.log(student)
     return res.status(200).json({
       success: true,
       student
@@ -481,6 +433,14 @@ const getAllResults = async (req, res) => {
 
 const updateResult = async (req, res) => {
   try {
+    // Remove halfYearly if present in body
+    if (req.body.subjects && Array.isArray(req.body.subjects)) {
+      req.body.subjects = req.body.subjects.map(sub => ({
+        name: sub.name,
+        annualExam: sub.annualExam,
+        grade: sub.grade
+      }));
+    }
 
     const student = await Student.findByIdAndUpdate(
       req.params.id,
@@ -496,8 +456,8 @@ const updateResult = async (req, res) => {
     }
 
     const activity = new RecentActivity({
-      description : `Principal Updated result of ${req.params.id}`
-    })
+      description: `Principal updated result of student ID: ${req.params.id}`
+    });
 
     await activity.save();
 
@@ -508,9 +468,14 @@ const updateResult = async (req, res) => {
     });
 
   } catch (error) {
-    return handleError(res, error, "Updating result");
+    console.error("Error updating result:", error);
+    return res.status(500).json({
+      success: false,
+      msg: "Failed to update student result"
+    });
   }
 };
+
 
 const deleteResult = async (req, res) => {
   try {
@@ -674,4 +639,4 @@ module.exports = {
   submitContactForm,
   getContacts,
   getAllActivity
-};
+}

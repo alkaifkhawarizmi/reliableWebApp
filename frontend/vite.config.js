@@ -3,16 +3,12 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000', // Your backend URL
-        changeOrigin: true,
-      },
-    },
+  esbuild: {
+    loader: 'jsx',
+    include: /src\/.*\.jsx?$/,
+    exclude: [],
   },
-  build: {
-    outDir: '../backend/frontend/dist', // Adjust path as needed
-    emptyOutDir: true,
+  resolve: {
+    extensions: ['.js', '.jsx', '.json'] 
   }
 });

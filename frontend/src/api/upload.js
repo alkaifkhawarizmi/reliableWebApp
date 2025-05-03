@@ -49,8 +49,18 @@ export async function deleteMedia(id){
 export const uploadStudentResult = async (studentData) => {
   try {
     // Validate required fields
-    if (!studentData.name || !studentData.rollNo || !studentData.className || !studentData.fatherName) {
-      throw new Error('Name, Roll Number, Class, and Father Name are required');
+    const requiredFields = [
+      'name', 
+      'rollNo', 
+      'className', 
+      'section',
+      'fatherName',
+      'motherName'
+    ];
+    
+    const missingFields = requiredFields.filter(field => !studentData[field]);
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
 
     // Validate subjects
@@ -64,11 +74,18 @@ export const uploadStudentResult = async (studentData) => {
       if (!subject.name) {
         subjectErrors.push(`Subject name is required`);
       }
-      if (subject.annualExam === undefined || subject.annualExam === "") {
+      if (!subject.annualExam || 
+          subject.annualExam.obtained === undefined || 
+          subject.annualExam.obtained === "" ||
+          subject.annualExam.total === undefined || 
+          subject.annualExam.total === "") {
         subjectErrors.push(`${subject.name}: Annual exam marks are required`);
       }
-      if (isNaN(parseFloat(subject.annualExam))) {
-        subjectErrors.push(`${subject.name}: Annual exam must be a number`);
+      if (isNaN(parseFloat(subject.annualExam.obtained))) {
+        subjectErrors.push(`${subject.name}: Obtained marks must be a number`);
+      }
+      if (isNaN(parseFloat(subject.annualExam.total))) {
+        subjectErrors.push(`${subject.name}: Total marks must be a number`);
       }
     });
 
@@ -76,28 +93,40 @@ export const uploadStudentResult = async (studentData) => {
       throw new Error(subjectErrors.join('\n'));
     }
 
+    // Prepare FormData
     const formData = new FormData();
-    // Append all student data
+    
+    // Append student information
     formData.append('name', studentData.name);
     formData.append('rollNo', studentData.rollNo);
     formData.append('className', studentData.className);
-    formData.append('section', studentData.section || '');
+    formData.append('section', studentData.section);
     formData.append('fatherName', studentData.fatherName);
-    formData.append('motherName', studentData.motherName || '');
+    formData.append('motherName', studentData.motherName);
     formData.append('dob', studentData.dob || '');
-    formData.append('admissionNo', studentData.admissionNo || '');
     formData.append('totalPresentDays', studentData.totalPresentDays || 0);
     formData.append('promotedToNextClass', studentData.promotedToNextClass || false);
     formData.append('feesPaid', studentData.feesPaid || false);
     
-    // Handle photo upload if exists
-    if (studentData.photo?.file) {
-      formData.append('photo', studentData.photo.file);
+    // Handle photo upload
+    if (studentData.photo) {
+      formData.append('photo', studentData.photo);
     }
 
-    // Stringify arrays before appending
-    formData.append('subjects', JSON.stringify(studentData.subjects));
-    formData.append('coScholasticAreas', JSON.stringify(studentData.coScholasticAreas));
+    // Process subjects data
+    const processedSubjects = studentData.subjects.map(subject => ({
+      name: subject.name,
+      annualExam: {
+        obtained: parseFloat(subject.annualExam.obtained) || 0,
+        total: parseFloat(subject.annualExam.total) || 0
+      },
+      grade: subject.grade || calculateGrade(subject.annualExam.obtained)
+    }));
+    formData.append('subjects', JSON.stringify(processedSubjects));
+
+    // Process co-scholastic areas
+    const processedCoScholasticAreas = studentData.coScholasticAreas || [];
+    formData.append('coScholasticAreas', JSON.stringify(processedCoScholasticAreas));
 
     // Make API request
     const response = await axios.post(
@@ -106,9 +135,9 @@ export const uploadStudentResult = async (studentData) => {
       {
         headers: {
           "Content-Type": "multipart/form-data",
-          // Add authorization header if needed
-          // "Authorization": `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}` // Add if needed
+        },
+        withCredentials: true // Add if needed
       }
     );
 
@@ -116,17 +145,35 @@ export const uploadStudentResult = async (studentData) => {
       throw new Error(response.data.message || 'Failed to upload result');
     }
 
-    return response.data;
+    return {
+      success: true,
+      data: response.data,
+      message: 'Result uploaded successfully'
+    };
 
   } catch (error) {
     console.error('Error uploading result:', error);
     
-    // Return a consistent error object
+    // Enhanced error handling
+    let errorMessage = 'Failed to upload student result';
+    
+    if (error.response) {
+      // Server responded with error status
+      errorMessage = error.response.data.message || 
+                    error.response.statusText || 
+                    `Server error: ${error.response.status}`;
+    } else if (error.request) {
+      // Request was made but no response received
+      errorMessage = 'No response from server. Please check your connection.';
+    } else if (error.message) {
+      // Custom validation errors
+      errorMessage = error.message;
+    }
+
     return {
       success: false,
-      message: error.response?.data?.message || 
-               error.message || 
-               'Failed to upload student result'
+      message: errorMessage,
+      error: error.response?.data || null
     };
   }
 };

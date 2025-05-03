@@ -17,8 +17,10 @@ const studentSchema = new mongoose.Schema({
   },
   subjects: [{
     name: { type: String, required: true },
-    halfYearly: { type: Number },
-    annualExam: { type: Number, required: true },
+    annualExam: {
+      marksObtained: { type: Number, required: true },
+      totalMarks: { type: Number } // Total marks for annual exam
+    },
     grade: { type: String, required: true }
   }],
   coScholasticAreas: [{
@@ -31,4 +33,4 @@ const studentSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+module.exports = mongoose.model("Admin", studentSchema);

@@ -9,14 +9,14 @@ const cloudinary = require('cloudinary').v2;
 const app = express();
 
 // Middlewares
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })) 
 
-// Configure CORS properly (combine your two cors usages)
+// Configure CORS properly (combine your two cors usages
 app.use(cors({
-  origin: ['https://rpssuket.com','http://rpssuket.com'], // Frontend domains
-  credentials: true
+  origin: ['http://localhost:5173', 'https://rpssuket.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Mount router
