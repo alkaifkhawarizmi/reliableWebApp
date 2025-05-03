@@ -319,13 +319,6 @@ const uploadResult = async (req, res) => {
       resource_type: 'auto'
     });
 
-    // Remove halfYearly from each subject (if passed by frontend)
-    const sanitizedSubjects = subjects.map(sub => ({
-      name: sub.name,
-      annualExam: sub.annualExam,
-      grade: sub.grade
-    }));
-
     const studentData = {
       name,
       rollNo,
@@ -337,7 +330,7 @@ const uploadResult = async (req, res) => {
       totalPresentDays: totalPresentDays ? parseInt(totalPresentDays) : 0,
       promotedToNextClass: promotedToNextClass === 'true',
       feesPaid,
-      subjects: sanitizedSubjects,
+      subjects,
       coScholasticAreas: coScholasticAreas || [],
       photo: {
         url: cloudinaryResult.secure_url,
@@ -363,7 +356,7 @@ const uploadResult = async (req, res) => {
   } catch (error) {
     if (req.file?.path) {
       try {
-        fs.unlinkSync(req.file.path);
+        // fs.unlinkSync(req.file.path);
       } catch (e) {
         console.error('Error deleting temp file:', e);
       }

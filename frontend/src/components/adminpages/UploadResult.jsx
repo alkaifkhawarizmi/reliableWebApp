@@ -67,14 +67,14 @@ const AddResult = () => {
 
   const calculateGrade = (marks) => {
     const mark = parseFloat(marks);
-    if (mark >= 91) return "A1";
-    if (mark >= 81) return "A2";
-    if (mark >= 71) return "B1";
-    if (mark >= 61) return "B2";
-    if (mark >= 51) return "C1";
-    if (mark >= 41) return "C2";
-    if (mark >= 33) return "D";
-    return "E";
+    if (mark >= 91) return "A+";
+    if (mark >= 81) return "A";
+    if (mark >= 71) return "B";
+    if (mark >= 61) return "C";
+    if (mark >= 51) return "D";
+    if (mark >= 41) return "E";
+    if (mark >= 33) return "F";
+    return "X";
   };
 
   const addSubject = () => {
