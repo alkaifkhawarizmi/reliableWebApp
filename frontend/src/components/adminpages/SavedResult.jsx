@@ -4,8 +4,8 @@ import {
   FiSearch, FiSave, FiUpload, FiImage, FiEdit2, 
   FiX, FiCheck, FiChevronLeft, FiChevronRight 
 } from 'react-icons/fi';
-import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // API Service Functions
 const resultService = {
@@ -17,7 +17,9 @@ const resultService = {
         ...filters
       }).toString();
 
-      const response = await fetch(`${import.meta.env.VITE_BASE_ALL_RESULT}?${queryParams}`);
+      const response = await fetch(`${import.meta.env.VITE_BASE_ALL_RESULT}?${queryParams}`, {
+        credentials: 'include'
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -46,7 +48,8 @@ const resultService = {
   deleteResult: async (id) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_DELETE_RESULT}/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       });
       const data = await response.json();
 
@@ -74,6 +77,7 @@ const resultService = {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updatedData)
       });
       const data = await response.json();
@@ -98,7 +102,9 @@ const resultService = {
   exportResults: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams(filters).toString();
-      const response = await fetch(`${import.meta.env.VITE_BASE_ALL_RESULT}/export?${queryParams}`);
+      const response = await fetch(`${import.meta.env.VITE_BASE_ALL_RESULT}/export?${queryParams}`, {
+        credentials: 'include'
+      });
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -153,18 +159,16 @@ const SavedResultsSection = () => {
     subjects: []
   });
 
-  // Memoized grade calculation
-  const calculateGrade = useCallback((percentage) => {
-    if (percentage >= 90) return 'A+';
-    if (percentage >= 80) return 'A';
-    if (percentage >= 70) return 'B+';
-    if (percentage >= 60) return 'B';
-    if (percentage >= 50) return 'C';
-    if (percentage >= 40) return 'D';
-    return 'F';
+  const calculateGrade = useCallback((marks, maxMarks = 100) => {
+    const percentage = (marks / maxMarks) * 100;
+    if (percentage >= 86) return "A";
+    if (percentage >= 71) return "B";
+    if (percentage >= 51) return "C";
+    if (percentage >= 31) return "D";
+    if (percentage >= 0) return "E";
+    return "X";
   }, []);
 
-  // Fetch results with debounce
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
@@ -214,8 +218,9 @@ const SavedResultsSection = () => {
       feesPaid: result.feesPaid,
       subjects: result.subjects.map(subject => ({
         ...subject,
-        marksObtained: subject.marksObtained || 0,
-        maxMarks: subject.maxMarks || 100
+        annualExam: subject.annualExam?.obtained || 0,
+        maxMarks: subject.annualExam?.total || 100,
+        grade: subject.grade || calculateGrade(subject.annualExam?.obtained, subject.annualExam?.total)
       }))
     });
   };
@@ -232,14 +237,16 @@ const SavedResultsSection = () => {
     const updatedSubjects = [...editFormData.subjects];
     updatedSubjects[index] = {
       ...updatedSubjects[index],
-      [field]: field === 'marksObtained' || field === 'maxMarks' 
+      [field]: field === 'annualExam' || field === 'maxMarks' 
         ? parseInt(value) || 0 
         : value
     };
     
-    if (field === 'marksObtained' || field === 'maxMarks') {
-      const percentage = (updatedSubjects[index].marksObtained / updatedSubjects[index].maxMarks) * 100;
-      updatedSubjects[index].grade = calculateGrade(percentage);
+    if (field === 'annualExam' || field === 'maxMarks') {
+      updatedSubjects[index].grade = calculateGrade(
+        updatedSubjects[index].annualExam,
+        updatedSubjects[index].maxMarks
+      );
     }
 
     setEditFormData(prev => ({ ...prev, subjects: updatedSubjects }));
@@ -247,12 +254,25 @@ const SavedResultsSection = () => {
 
   const handleEditSubmit = async (id) => {
     try {
-      const response = await resultService.updateResult(id, editFormData);
+      // Format subjects data for API
+      const formattedData = {
+        ...editFormData,
+        subjects: editFormData.subjects.map(subject => ({
+          name: subject.name,
+          annualExam: {
+            obtained: subject.annualExam,
+            total: subject.maxMarks
+          },
+          grade: subject.grade
+        }))
+      };
+
+      const response = await resultService.updateResult(id, formattedData);
       
       if (response.success) {
         toast.success('Result updated successfully');
         setResults(prev => prev.map(result => 
-          result._id === id ? { ...result, ...editFormData } : result
+          result._id === id ? { ...result, ...formattedData } : result
         ));
         setEditingResult(null);
       } else {
@@ -300,7 +320,6 @@ const SavedResultsSection = () => {
     }));
   };
 
-  // Generate pagination buttons
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisibleButtons = 5;
@@ -325,7 +344,6 @@ const SavedResultsSection = () => {
       }
     }
 
-    // Previous button
     buttons.push(
       <button
         key="prev"
@@ -337,7 +355,6 @@ const SavedResultsSection = () => {
       </button>
     );
 
-    // First page
     if (startPage > 1) {
       buttons.push(
         <button
@@ -353,7 +370,6 @@ const SavedResultsSection = () => {
       }
     }
 
-    // Page buttons
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
         <button
@@ -366,7 +382,6 @@ const SavedResultsSection = () => {
       );
     }
 
-    // Last page
     if (endPage < pagination.pages) {
       if (endPage < pagination.pages - 1) {
         buttons.push(<span key="ellipsis-end" className="px-2">...</span>);
@@ -382,7 +397,6 @@ const SavedResultsSection = () => {
       );
     }
 
-    // Next button
     buttons.push(
       <button
         key="next"
@@ -398,7 +412,7 @@ const SavedResultsSection = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+    <div className="bg-white rounded-lg shadow-md mt-12 p-4 md:p-6">
       <ToastContainer position="top-right" autoClose={3000} />
       
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
@@ -426,7 +440,6 @@ const SavedResultsSection = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
@@ -439,7 +452,9 @@ const SavedResultsSection = () => {
             <option value="">All Classes</option>
             <option value="1">Class 1</option>
             <option value="2">Class 2</option>
-            {/* Add more class options as needed */}
+            <option value="3">Class 3</option>
+            <option value="4">Class 4</option>
+            <option value="5">Class 5</option>
           </select>
         </div>
         <div>
@@ -611,26 +626,23 @@ const SavedResultsSection = () => {
                                     />
                                     <input
                                       type="number"
-                                      value={subject.halfYearly || ''}
-                                      onChange={(e) => handleSubjectChange(index, 'halfYearly', e.target.value)}
+                                      value={subject.annualExam}
+                                      onChange={(e) => handleSubjectChange(index, 'annualExam', e.target.value)}
                                       className="p-2 border rounded-md"
-                                      placeholder="Half Yearly"
+                                      placeholder="Obtained"
                                       min="0"
                                     />
                                     <input
                                       type="number"
-                                      value={subject.annualExam || ''}
-                                      onChange={(e) => handleSubjectChange(index, 'annualExam', e.target.value)}
+                                      value={subject.maxMarks}
+                                      onChange={(e) => handleSubjectChange(index, 'maxMarks', e.target.value)}
                                       className="p-2 border rounded-md"
-                                      placeholder="Annual Exam"
+                                      placeholder="Total"
                                       min="0"
-                                      required
                                     />
                                     <input
                                       type="text"
-                                      value={subject.grade || calculateGrade(
-                                        (subject.annualExam / (subject.maxMarks || 100)) * 100
-                                      ) || ''}
+                                      value={subject.grade}
                                       readOnly
                                       className="p-2 border rounded-md bg-gray-100"
                                       placeholder="Grade"
@@ -685,7 +697,7 @@ const SavedResultsSection = () => {
                               <div key={subject._id || subject.name} className="flex justify-between text-sm">
                                 <span className="font-medium">{subject.name}:</span>
                                 <span>
-                                  {subject.annualExam || '-'}/{subject.maxMarks || 100} ({subject.grade || '-'})
+                                  {subject.annualExam?.obtained || '-'}/{subject.annualExam?.total || 100} ({subject.grade || '-'})
                                 </span>
                               </div>
                             ))}
@@ -733,7 +745,6 @@ const SavedResultsSection = () => {
             </table>
           </div>
 
-          {/* Pagination */}
           <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
             <div>
               <p className="text-sm text-gray-700">

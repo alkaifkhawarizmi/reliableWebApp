@@ -294,17 +294,37 @@ const uploadResult = async (req, res) => {
     const {
       name,
       rollNo,
+      addmissionNo,
       className,
       section,
       fatherName,
       motherName,
       dob,
       totalPresentDays,
+      totalSchoolDays, // 👈 New field
+      resultDeclarationDate, // 👈 New field
       promotedToNextClass,
       feesPaid,
       subjects,
       coScholasticAreas
     } = req.body;
+
+    // Validate required fields
+    if (!totalSchoolDays || !resultDeclarationDate) {
+      return res.status(400).json({
+        success: false,
+        msg: 'totalSchoolDays and resultDeclarationDate are required'
+      });
+    }
+
+    const checkRoll = await Student.find({rollNo})
+
+    if(checkRoll.length > 0){
+      return res.status(400).json({
+        success: false,
+        message: 'student already exists'
+      })
+    }
 
     const tempFilePath = req.file?.path;
     if (!tempFilePath) {
@@ -314,46 +334,59 @@ const uploadResult = async (req, res) => {
       });
     }
 
+    // Upload photo to Cloudinary
     const cloudinaryResult = await cloudinary.uploader.upload(tempFilePath, {
-      folder: 'student-photos',
+      folder: 'uploads',
       resource_type: 'auto'
     });
 
+    // Parse subjects and coScholasticAreas if they come as strings
+    const parsedSubjects = typeof subjects === 'string' ? JSON.parse(subjects) : subjects;
+    const parsedCoScholasticAreas = typeof coScholasticAreas === 'string' 
+      ? JSON.parse(coScholasticAreas) 
+      : coScholasticAreas || [];
+
+    // Build student data
     const studentData = {
       name,
       rollNo,
+      addmissionNo,
       className,
       section,
       fatherName,
       motherName,
       dob: dob ? new Date(dob) : null,
-      totalPresentDays: totalPresentDays ? parseInt(totalPresentDays) : 0,
+      totalPresentDays: parseInt(totalPresentDays) || 0,
+      totalSchoolDays: parseInt(totalSchoolDays), // 👈 Added
+      resultDeclarationDate: new Date(resultDeclarationDate), // 👈 Added
       promotedToNextClass: promotedToNextClass === 'true',
-      feesPaid,
-      subjects,
-      coScholasticAreas: coScholasticAreas || [],
+      feesPaid: feesPaid === 'true',
+      subjects: parsedSubjects,
+      coScholasticAreas: parsedCoScholasticAreas,
       photo: {
         url: cloudinaryResult.secure_url,
         publicId: cloudinaryResult.public_id
       }
     };
 
+    // Create student record
     const student = await Student.create(studentData);
 
-    console.log(student)
-
-    const activity = new RecentActivity({
-      description: `Principal uploaded result for rollNo: ${rollNo}`
+    // Log activity
+    await RecentActivity.create({
+      description: `Result uploaded for ${name} (Roll: ${rollNo})`,
+      referenceId: student._id,
+      type: 'result_upload'
     });
-    await activity.save();
 
     return res.status(201).json({
       success: true,
       msg: 'Result uploaded successfully',
-      student
+      data: student
     });
 
   } catch (error) {
+    // Clean up temp file if exists
     if (req.file?.path) {
       try {
         // fs.unlinkSync(req.file.path);
@@ -363,9 +396,18 @@ const uploadResult = async (req, res) => {
     }
 
     console.error('Error uploading result:', error);
+
+    // Handle specific errors
+    let errorMsg = 'Failed to upload student result';
+    if (error.name === 'ValidationError') {
+      errorMsg = Object.values(error.errors).map(val => val.message).join(', ');
+      return res.status(400).json({ success: false, msg: errorMsg });
+    }
+
     return res.status(500).json({
       success: false,
-      msg: 'Failed to upload student result'
+      msg: errorMsg,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -382,7 +424,7 @@ const getResult = async (req, res) => {
         msg: "Student result not found"
       });
     }
-console.log(student)
+
     return res.status(200).json({
       success: true,
       student
@@ -602,8 +644,7 @@ const getContacts = async (req, res) => {
 const getAllActivity = async (req, res) => {
   try {
     
-    const activity = await RecentActivity.find().sort();
-    console.log(activity)
+    const activity = await RecentActivity.find().sort()
 
     return res.status(200).json({
       success: true,
